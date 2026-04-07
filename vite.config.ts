@@ -35,8 +35,4 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-<<<<<<< HEAD
 }));
-=======
-}));
->>>>>>> 1214bf4 (intial commit)
