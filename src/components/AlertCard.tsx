@@ -18,49 +18,49 @@ const alertConfig = {
   heart_rate: {
     icon: Heart,
     color: "text-red-400",
-    bg: "bg-red-500/10",
-    border: "border-red-500/30",
-    glow: "shadow-neon-red",
+    bg: "bg-gray-800/90",
+    border: "border-gray-600/50",
+    glow: "shadow-[0_0_20px_rgba(75,85,99,0.3)]",
     label: "Heart Rate Alert",
   },
   fever: {
     icon: Thermometer,
     color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/30",
-    glow: "shadow-[0_0_20px_rgba(251,146,60,0.3)]",
+    bg: "bg-gray-800/90",
+    border: "border-gray-600/50",
+    glow: "shadow-[0_0_20px_rgba(75,85,99,0.3)]",
     label: "Fever Alert",
   },
   low_spo2: {
     icon: Droplets,
     color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/30",
-    glow: "shadow-[0_0_20px_rgba(96,165,250,0.3)]",
+    bg: "bg-gray-800/90",
+    border: "border-gray-600/50",
+    glow: "shadow-[0_0_20px_rgba(75,85,99,0.3)]",
     label: "Low SpO2",
   },
   stress: {
     icon: Brain,
     color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/30",
-    glow: "shadow-neon-purple",
+    bg: "bg-gray-800/90",
+    border: "border-gray-600/50",
+    glow: "shadow-[0_0_20px_rgba(75,85,99,0.3)]",
     label: "Stress Spike",
   },
   info: {
     icon: AlertTriangle,
     color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/30",
-    glow: "shadow-neon",
+    bg: "bg-gray-800/90",
+    border: "border-gray-600/50",
+    glow: "shadow-[0_0_20px_rgba(75,85,99,0.3)]",
     label: "Information",
   },
   critical: {
     icon: AlertTriangle,
     color: "text-red-400",
-    bg: "bg-red-500/15",
-    border: "border-red-500/50",
-    glow: "shadow-neon-red",
+    bg: "bg-gray-800/90",
+    border: "border-gray-600/50",
+    glow: "shadow-[0_0_20px_rgba(75,85,99,0.3)]",
     label: "Critical Alert",
   },
 };
@@ -172,7 +172,7 @@ export function AlertsPanel({ alerts, onResolve, title = "Live Alerts", maxHeigh
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-white">{title}</h3>
+          <h3 className="font-semibold text-gray-400">{title}</h3>
           {activeAlerts.length > 0 && (
             <motion.span
               animate={{ scale: [1, 1.1, 1] }}

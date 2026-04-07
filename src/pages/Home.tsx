@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, MapPin, Users, Award, Shield, Pill, FlaskConical, Truck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,14 +7,36 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { DoctorCard } from "@/components/doctors/DoctorCard";
 import { Autocomplete } from "@/components/ui/autocomplete";
-import { mockSpecialties, mockDoctors } from "@/data/mockData";
+import { fetchSpecialties, fetchDoctors } from "@/services/supabaseService";
 import { indianStates, doctorSpecialties } from "@/data/indianStates";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [topDoctors, setTopDoctors] = useState<any[]>([]);
+  const [featuredSpecialties, setFeaturedSpecialties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [doctorsData, specialtiesData] = await Promise.all([
+          fetchDoctors(),
+          fetchSpecialties()
+        ]);
+        setTopDoctors(doctorsData.slice(0, 3));
+        setFeaturedSpecialties(specialtiesData.slice(0, 8));
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -22,9 +44,6 @@ export default function Home() {
     if (selectedCity) params.append('city', selectedCity);
     navigate(`/search?${params.toString()}`);
   };
-
-  const topDoctors = mockDoctors.slice(0, 3);
-  const featuredSpecialties = mockSpecialties.slice(0, 8);
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,7 +151,7 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-muted-foreground mt-6">
-              Starting at $29/month • Free shipping • 30-day money-back guarantee
+              Starting at ₹2,320/month • Free shipping • 30-day money-back guarantee
             </p>
           </div>
         </div>

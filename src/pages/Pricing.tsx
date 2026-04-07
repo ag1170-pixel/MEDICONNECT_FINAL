@@ -48,7 +48,7 @@ export default function Pricing() {
     {
       id: "essential",
       name: "Essential",
-      price: 29,
+      price: 2320,
       description: "Perfect for individuals starting their health journey",
       badge: null,
       features: [
@@ -64,7 +64,7 @@ export default function Pricing() {
     {
       id: "premium", 
       name: "Premium",
-      price: 49,
+      price: 3920,
       description: "Complete health management with doctor connectivity",
       badge: "Most Popular",
       features: [
@@ -82,7 +82,7 @@ export default function Pricing() {
     {
       id: "family",
       name: "Family Plan", 
-      price: 79,
+      price: 6320,
       description: "Complete health protection for your entire family",
       badge: "Best Value",
       features: [
@@ -199,7 +199,7 @@ export default function Pricing() {
                     {plan.description}
                   </CardDescription>
                    <div className="mt-6">
-                     <span className="text-4xl font-bold text-foreground">₹{plan.price * 80}</span>
+                     <span className="text-4xl font-bold text-foreground">Rs.{plan.price}</span>
                      <span className="text-muted-foreground">/month</span>
                    </div>
                 </CardHeader>

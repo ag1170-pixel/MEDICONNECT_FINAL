@@ -50,17 +50,17 @@ serve(async (req) => {
     const plans = {
       essential: {
         name: "MediConnect Essential",
-        price: 2999, // $29.99
+        price: 232000, // ₹2320.00 in cents
         description: "Smart Band + Basic Health Monitoring"
       },
       premium: {
         name: "MediConnect Premium", 
-        price: 4999, // $49.99
+        price: 392000, // ₹3920.00 in cents
         description: "Everything in Essential + Advanced Analytics + Doctor Alerts"
       },
       family: {
         name: "MediConnect Family",
-        price: 7999, // $79.99
+        price: 632000, // ₹6320.00 in cents
         description: "Premium features for up to 4 family members"
       }
     };
@@ -74,7 +74,7 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "inr",
             product_data: {
               name: selectedPlan.name,
               description: selectedPlan.description,

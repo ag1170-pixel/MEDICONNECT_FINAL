@@ -1,76 +1,50 @@
 import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { AuthUser } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { sendWelcomeEmail } from '@/services/emailService';
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user as AuthUser || null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, session) => {
+        setUser(session?.user as AuthUser || null);
         setLoading(false);
       }
     );
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    // Send welcome email asynchronously without blocking login flow
-    if (!error && data.user) {
-      // Don't await this - let it run in background
-      sendWelcomeEmail(data.user.email!, data.user.user_metadata?.full_name || 'User')
-        .catch(emailError => {
-          console.log('Welcome email failed to send:', emailError);
-          // Email failure shouldn't affect login
-        });
-    }
-
+    
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { data, error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          phone: phone,
         },
       },
     });
-
-    // Send welcome email asynchronously without blocking signup flow
-    if (!error && data.user) {
-      // Don't await this - let it run in background
-      sendWelcomeEmail(email, fullName)
-        .catch(emailError => {
-          console.log('Welcome email failed to send:', emailError);
-          // Email failure shouldn't affect signup
-        });
-    }
-
+    
     return { error };
   };
 
@@ -81,7 +55,6 @@ export function useAuth() {
 
   return {
     user,
-    session,
     loading,
     signIn,
     signUp,

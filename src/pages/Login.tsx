@@ -7,7 +7,6 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Stethoscope, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { initializeEmailJS } from "@/services/emailService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,9 +17,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
 
-  // Initialize EmailJS and redirect if already logged in
+  // Redirect if already logged in
   useEffect(() => {
-    initializeEmailJS();
     if (!loading && user) {
       navigate("/dashboard", { replace: true });
     }
@@ -53,14 +51,7 @@ export default function Login() {
       const { error } = await signIn(email, password);
       
       if (error) {
-        // Handle specific error cases
-        if (error.message.includes('Email not confirmed')) {
-          toast({
-            title: "Email not confirmed",
-            description: "Please check your email and click the confirmation link before signing in.",
-            variant: "destructive",
-          });
-        } else if (error.message.includes('Invalid login credentials')) {
+        if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid credentials')) {
           toast({
             title: "Invalid credentials",
             description: "Please check your email and password and try again.",

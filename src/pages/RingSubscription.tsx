@@ -13,7 +13,7 @@ const plans = [
   {
     id: "basic",
     name: "Basic Ring",
-    price: 9.99,
+    price: 799,
     period: "month",
     icon: Shield,
     color: "cyan",
@@ -38,7 +38,7 @@ const plans = [
   {
     id: "premium",
     name: "Premium Ring",
-    price: 24.99,
+    price: 1999,
     period: "month",
     icon: Crown,
     color: "purple",
@@ -63,7 +63,7 @@ const plans = [
   {
     id: "enterprise",
     name: "Enterprise",
-    price: 49.99,
+    price: 3999,
     period: "month",
     icon: Sparkles,
     color: "amber",
@@ -204,7 +204,7 @@ export default function RingSubscription() {
 
                   <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-3xl font-bold text-white">${getPrice(plan.price)}</span>
+                    <span className="text-3xl font-bold text-white">₹{getPrice(plan.price)}</span>
                     <span className="text-muted-foreground text-sm">/{billingCycle === "annual" ? "mo, billed annually" : "month"}</span>
                   </div>
 

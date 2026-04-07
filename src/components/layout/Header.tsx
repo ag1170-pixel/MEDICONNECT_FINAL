@@ -3,18 +3,21 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, User, LogOut, Stethoscope, Activity, Watch,
-  Heart, ChevronDown, Menu, X, Bell, Settings, Shield,
-  LayoutDashboard, Cpu, UserCog
+  Heart, ChevronDown, Menu, X, Moon, Sun, Settings, Shield,
+  LayoutDashboard, Cpu, UserCog, Pill, FlaskConical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/hooks/useTheme";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Health", href: "/health-dashboard", icon: Heart },
   { label: "Devices", href: "/devices", icon: Cpu },
   { label: "Ring Plans", href: "/ring-subscription", icon: Shield },
+  { label: "Medicine", href: "/medicine", icon: Pill },
+  { label: "Lab Tests", href: "/lab-tests", icon: FlaskConical },
   { label: "Doctor Panel", href: "/doctor-dashboard", icon: Stethoscope },
   { label: "Account", href: "/account", icon: UserCog },
 ];
@@ -29,6 +32,7 @@ export function Header() {
   const location = useLocation();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,19 +92,19 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
             <motion.div
-              className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-neon"
+              className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-neon"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
               <Activity className="h-5 w-5 text-white" />
               <motion.div
-                className="absolute inset-0 rounded-xl border-2 border-cyan-400"
+                className="absolute inset-0 rounded-xl border-2 border-green-400"
                 animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0, 0.6] }}
                 transition={{ duration: 3, repeat: Infinity }}
               />
             </motion.div>
             <div>
-              <span className="text-base font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="text-base font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
                 MediConnect
               </span>
               <div className="text-xs text-muted-foreground leading-none -mt-0.5 hidden sm:block">
@@ -110,7 +114,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+          <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = isActive(link.href);
@@ -120,13 +124,13 @@ export function Header() {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     className={cn(
-                      "relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200",
+                      "relative flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap",
                       active
                         ? "text-cyan-400 bg-cyan-500/10 border border-cyan-500/20"
                         : "text-muted-foreground hover:text-white hover:bg-white/5"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-3 w-3" />
                     <span>{link.label}</span>
                     {active && (
                       <motion.div
@@ -145,13 +149,13 @@ export function Header() {
           <form onSubmit={handleSearch} className="hidden md:block relative">
             <motion.div
               animate={{
-                width: searchFocused ? 240 : 180,
+                width: searchFocused ? 200 : 160,
                 borderColor: searchFocused ? "hsl(187,100%,50%,0.4)" : "rgba(255,255,255,0.1)"
               }}
               transition={{ duration: 0.2 }}
               className="relative flex items-center backdrop-blur-xl bg-white/5 border rounded-xl overflow-hidden"
             >
-              <Search className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search..."
@@ -159,21 +163,25 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                className="bg-transparent text-sm text-white placeholder-muted-foreground pl-9 pr-3 py-2 outline-none w-full"
+                className="bg-transparent text-xs text-white placeholder-muted-foreground pl-8 pr-2 py-2 outline-none w-full"
               />
             </motion.div>
           </form>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 ml-auto lg:ml-0">
-            {/* Notification bell */}
+          <div className="flex items-center gap-1.5 ml-auto lg:ml-0">
+            {/* Dark mode toggle */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="relative p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
             >
-              <Bell className="h-4 w-4 text-muted-foreground" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-red-500" />
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Moon className="h-4 w-4 text-muted-foreground" />
+              )}
             </motion.button>
 
             {/* Profile Menu */}
@@ -183,12 +191,12 @@ export function Header() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
                 >
                   <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
                     <User className="h-3.5 w-3.5 text-white" />
                   </div>
-                  <span className="text-sm text-white hidden sm:block max-w-[100px] truncate">
+                  <span className="text-xs text-white hidden lg:block max-w-[80px] truncate">
                     {user.email?.split("@")[0] || "User"}
                   </span>
                   <motion.div animate={{ rotate: profileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -260,7 +268,7 @@ export function Header() {
                   <motion.button
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-neon transition-all"
+                    className="px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 shadow-neon transition-all"
                   >
                     Get Started
                   </motion.button>

@@ -7,7 +7,6 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Stethoscope, Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { initializeEmailJS } from "@/services/emailService";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -20,9 +19,8 @@ export default function Signup() {
   const navigate = useNavigate();
   const { signUp, user, loading } = useAuth();
 
-  // Initialize EmailJS and redirect if already logged in
+  // Redirect if already logged in
   useEffect(() => {
-    initializeEmailJS();
     if (!loading && user) {
       navigate("/dashboard", { replace: true });
     }
@@ -61,11 +59,11 @@ export default function Signup() {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email, password, name);
+      const { error } = await signUp(email, password, name, phone);
       
       if (error) {
         // Handle specific error cases
-        if (error.message.includes('User already registered')) {
+        if (error.message.includes('User already registered') || error.message.includes('already registered')) {
           toast({
             title: "Account already exists",
             description: "An account with this email already exists. Please sign in instead.",
@@ -83,7 +81,7 @@ export default function Signup() {
       
       toast({
         title: "Account created successfully",
-        description: `Welcome to MediConnect, ${name}! Please check your email to confirm your account.`,
+        description: `Welcome to MediConnect, ${name}! Your account has been created successfully.`,
       });
       
       navigate("/dashboard", { replace: true });

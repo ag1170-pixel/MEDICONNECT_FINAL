@@ -92,6 +92,37 @@ export default function DoctorDashboard() {
     setPrescription("");
   };
 
+  const handleSendToUser = (patient: Patient) => {
+    // Create a summary of patient data to send
+    const patientData = {
+      patient: {
+        name: patient.name,
+        age: patient.age,
+        condition: patient.condition,
+        status: patient.status
+      },
+      currentMetrics: {
+        heartRate: metrics.heartRate,
+        spo2: metrics.spo2,
+        temperature: metrics.temperature,
+        systolic: metrics.systolic,
+        diastolic: metrics.diastolic,
+        stress: metrics.stress,
+        steps: metrics.steps
+      },
+      recentNotes: notes.filter(n => n.patient === patient.name).slice(0, 3),
+      timestamp: new Date().toISOString()
+    };
+
+    // In a real app, this would send via email, SMS, or push notification
+    // For now, we'll show a success message and log the data
+    console.log('Sending patient data to user:', patientData);
+    
+    // You could integrate with EmailJS, Supabase, or other services here
+    // For demonstration, we'll show an alert
+    alert(`Health report sent to ${patient.name}! (Check console for data)`);
+  };
+
   return (
     <div className="min-h-screen bg-background grid-bg">
       <Header />
@@ -192,16 +223,27 @@ export default function DoctorDashboard() {
                     <h2 className="text-lg font-bold text-white">{selectedPatient.name}</h2>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground">Age {selectedPatient.age}</span>
-                      <span className="text-muted-foreground/30">•</span>
+                      <span className="text-muted-foreground/30">·</span>
                       <span className="text-xs text-muted-foreground">{selectedPatient.condition}</span>
-                      <span className="text-muted-foreground/30">•</span>
+                      <span className="text-muted-foreground/30">·</span>
                       <span className="text-xs text-muted-foreground">Last seen {selectedPatient.lastVisit}</span>
                     </div>
                   </div>
                 </div>
-                <span className={cn("text-xs font-semibold px-3 py-1 rounded-full border", statusColors[selectedPatient.status])}>
-                  {selectedPatient.status.charAt(0).toUpperCase() + selectedPatient.status.slice(1)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleSendToUser(selectedPatient)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30 hover:border-green-500/50 transition-all duration-200"
+                  >
+                    <Send className="h-4 w-4" />
+                    <span className="text-sm font-medium">Send to User</span>
+                  </motion.button>
+                  <span className={cn("text-xs font-semibold px-3 py-1 rounded-full border", statusColors[selectedPatient.status])}>
+                    {selectedPatient.status.charAt(0).toUpperCase() + selectedPatient.status.slice(1)}
+                  </span>
+                </div>
               </div>
             </GlassCard>
 
@@ -262,7 +304,7 @@ export default function DoctorDashboard() {
                           placeholder="Primary diagnosis..."
                           value={diagnosis}
                           onChange={(e) => setDiagnosis(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-muted-foreground outline-none focus:border-cyan-500/40 transition-colors"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-cyan-500/40 transition-colors"
                         />
                       </div>
                       <div>
@@ -272,7 +314,7 @@ export default function DoctorDashboard() {
                           placeholder="Medications & dosage..."
                           value={prescription}
                           onChange={(e) => setPrescription(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-muted-foreground outline-none focus:border-cyan-500/40 transition-colors"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-cyan-500/40 transition-colors"
                         />
                       </div>
                       <div>
@@ -282,7 +324,7 @@ export default function DoctorDashboard() {
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           rows={3}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-muted-foreground outline-none focus:border-cyan-500/40 transition-colors resize-none"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-cyan-500/40 transition-colors resize-none"
                         />
                       </div>
                       <motion.button

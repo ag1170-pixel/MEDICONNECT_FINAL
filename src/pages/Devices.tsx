@@ -329,7 +329,7 @@ export default function Devices() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-semibold text-white">NFC Actions</h3>
-                        <p className="text-xs text-muted-foreground">Contactless health data sharing</p>
+                        <p className="text-xs text-muted-foreground">Contactless health & payment systems</p>
                       </div>
                       <span className="text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-full">Enabled</span>
                     </div>
@@ -339,6 +339,9 @@ export default function Devices() {
                         { label: "Share Health Record", desc: "Tap to share with doctor" },
                         { label: "Emergency ID", desc: "Medical ID via NFC" },
                         { label: "Appointment Check-in", desc: "Tap at clinic reception" },
+                        { label: "Metro Card", desc: "Tap for public transit" },
+                        { label: "Credit Card", desc: "Contactless payments" },
+                        { label: "Debit Card", desc: "Bank card via NFC" },
                         { label: "Medication Reminder", desc: "NFC pharmacy integration" },
                       ].map((action, i) => (
                         <motion.button
