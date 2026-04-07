@@ -28,7 +28,7 @@ export default function Dashboard() {
         id: "1",
         doctor_id: "1",
         doctor: mockDoctors[0],
-        patient_name: "Guest User",
+        patient_name: "John Doe",
         patient_phone: "+91 9876543210",
         appointment_date: "2024-01-15",
         appointment_time: "10:00 AM",
@@ -40,7 +40,7 @@ export default function Dashboard() {
         id: "2",
         doctor_id: "2",
         doctor: mockDoctors[1],
-        patient_name: "Guest User",
+        patient_name: "John Doe",
         patient_phone: "+91 9876543210",
         appointment_date: "2024-01-20",
         appointment_time: "02:30 PM",
@@ -52,7 +52,7 @@ export default function Dashboard() {
         id: "3",
         doctor_id: "3",
         doctor: mockDoctors[2],
-        patient_name: "Guest User",
+        patient_name: "John Doe",
         patient_phone: "+91 9876543210",
         appointment_date: "2024-01-05",
         appointment_time: "11:00 AM",
@@ -62,13 +62,14 @@ export default function Dashboard() {
       },
     ];
 
-    setAppointments(mockAppointments);
-    setIsLoading(false);
-  }, []);
+      setAppointments(mockAppointments);
+      setIsLoading(false);
+    }
+  }, [user, loading, navigate]);
 
   const handleLogout = async () => {
     try {
-      // Mock logout - just navigate to home
+      await signOut();
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account.",
@@ -110,7 +111,7 @@ export default function Dashboard() {
   const upcomingAppointments = appointments.filter(apt => apt.status === 'upcoming');
   const pastAppointments = appointments.filter(apt => ['completed', 'cancelled'].includes(apt.status));
 
-  if (isLoading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -141,12 +142,12 @@ export default function Dashboard() {
                 <div className="text-center mb-6">
                   <Avatar className="h-20 w-20 mx-auto mb-4">
                     <AvatarImage src="" alt="User" />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                      GU
-                    </AvatarFallback>
+                     <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                       {user?.user_metadata?.full_name ? user.user_metadata.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
+                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg">Guest User</h3>
-                  <p className="text-muted-foreground">guest@mediconnect.com</p>
+                   <h3 className="font-semibold text-lg">{user?.user_metadata?.full_name || 'User'}</h3>
+                   <p className="text-muted-foreground">{user?.email}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -154,10 +155,10 @@ export default function Dashboard() {
                     <Phone className="h-4 w-4" />
                     <span>+91 9876543210</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>guest@mediconnect.com</span>
-                  </div>
+                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                     <Mail className="h-4 w-4" />
+                     <span>{user?.email}</span>
+                   </div>
                 </div>
 
                 <Separator className="my-6" />
@@ -235,39 +236,42 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-4">
                     {upcomingAppointments.map((appointment) => (
-                      <div key={appointment.id} className="border rounded-2xl p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src="" alt={appointment.doctor.name} />
-                                <AvatarFallback>{appointment.doctor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <h4 className="font-semibold">{appointment.doctor.name}</h4>
-                                <p className="text-sm text-muted-foreground">{appointment.doctor.specialty}</p>
+                      <div
+                        key={appointment.id}
+                        className="flex items-center justify-between p-4 rounded-2xl border"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={appointment.doctor.profile_image} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {appointment.doctor.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div>
+                            <h4 className="font-semibold">Dr. {appointment.doctor.name}</h4>
+                            <p className="text-sm text-muted-foreground">{appointment.doctor.specialty}</p>
+                            <div className="flex items-center space-x-4 mt-1">
+                              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}</span>
                               </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">Date:</span> {appointment.appointment_date}
-                              </div>
-                              <div>
-                                <span className="font-medium">Time:</span> {appointment.appointment_time}
-                              </div>
-                              <div>
-                                <span className="font-medium">Fees:</span> ${appointment.fees}
-                              </div>
-                              <div>
-                                <span className="font-medium">Status:</span>
-                                <Badge variant="default" className="ml-1">{appointment.status}</Badge>
+                              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span>{appointment.appointment_time}</span>
                               </div>
                             </div>
                           </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline" className="text-success border-success">
+                            Confirmed
+                          </Badge>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="rounded-2xl text-destructive border-destructive hover:bg-destructive hover:text-white"
+                            className="rounded-2xl"
                             onClick={() => handleCancelAppointment(appointment.id)}
                           >
                             Cancel
@@ -281,59 +285,58 @@ export default function Dashboard() {
             </Card>
 
             {/* Past Appointments */}
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <CardTitle>Past Appointments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pastAppointments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No past appointments</p>
-                  </div>
-                ) : (
+            {pastAppointments.length > 0 && (
+              <Card className="rounded-2xl">
+                <CardHeader>
+                  <CardTitle>Past Appointments</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
-                    {pastAppointments.map((appointment) => (
-                      <div key={appointment.id} className="border rounded-2xl p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src="" alt={appointment.doctor.name} />
-                                <AvatarFallback>{appointment.doctor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <h4 className="font-semibold">{appointment.doctor.name}</h4>
-                                <p className="text-sm text-muted-foreground">{appointment.doctor.specialty}</p>
+                    {pastAppointments.slice(0, 5).map((appointment) => (
+                      <div
+                        key={appointment.id}
+                        className="flex items-center justify-between p-4 rounded-2xl border"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={appointment.doctor.profile_image} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {appointment.doctor.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div>
+                            <h4 className="font-semibold">Dr. {appointment.doctor.name}</h4>
+                            <p className="text-sm text-muted-foreground">{appointment.doctor.specialty}</p>
+                            <div className="flex items-center space-x-4 mt-1">
+                              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}</span>
                               </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">Date:</span> {appointment.appointment_date}
-                              </div>
-                              <div>
-                                <span className="font-medium">Time:</span> {appointment.appointment_time}
-                              </div>
-                              <div>
-                                <span className="font-medium">Fees:</span> ${appointment.fees}
-                              </div>
-                              <div>
-                                <span className="font-medium">Status:</span>
-                                <Badge 
-                                  variant={appointment.status === 'completed' ? 'default' : 'destructive'}
-                                  className="ml-1"
-                                >
-                                  {appointment.status}
-                                </Badge>
+                              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span>{appointment.appointment_time}</span>
                               </div>
                             </div>
                           </div>
                         </div>
+
+                        <Badge 
+                          variant={appointment.status === 'completed' ? 'default' : 'secondary'}
+                          className={
+                            appointment.status === 'completed' 
+                              ? 'bg-success text-success-foreground'
+                              : ''
+                          }
+                        >
+                          {appointment.status === 'completed' ? 'Completed' : 'Cancelled'}
+                        </Badge>
                       </div>
                     ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

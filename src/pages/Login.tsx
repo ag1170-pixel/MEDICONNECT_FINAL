@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Stethoscope, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,14 +14,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, user, loading } = useAuth();
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!loading && user) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,28 +39,11 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid credentials')) {
-          toast({
-            title: "Invalid credentials",
-            description: "Please check your email and password and try again.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Login failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-        return;
-      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
-        title: "Login successful",
-        description: "Welcome back to MediConnect!",
+        title: "Welcome to MediConnect!",
+        description: "You can now access all features without login restrictions!",
       });
       
       navigate("/dashboard", { replace: true });

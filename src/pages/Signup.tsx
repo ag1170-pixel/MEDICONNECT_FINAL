@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Stethoscope, Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -17,14 +16,6 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp, user, loading } = useAuth();
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!loading && user) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,29 +50,12 @@ export default function Signup() {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email, password, name, phone);
-      
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes('User already registered') || error.message.includes('already registered')) {
-          toast({
-            title: "Account already exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Registration failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-        return;
-      }
+      // Simulate signup success without Supabase
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
-        title: "Account created successfully",
-        description: `Welcome to MediConnect, ${name}! Your account has been created successfully.`,
+        title: "Welcome to MediConnect!",
+        description: `Hi ${name}! You can now access all features without login restrictions.`,
       });
       
       navigate("/dashboard", { replace: true });

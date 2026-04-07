@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Cpu, UserCog, Pill, FlaskConical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
+// import { useAuth } from "@/hooks/useAuth"; // Disabled Supabase Auth
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -31,7 +31,7 @@ export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { user, signOut } = useAuth();
+  // const { user, signOut } = useAuth(); // Disabled Supabase Auth
   const { theme, setTheme } = useTheme();
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -63,12 +63,12 @@ export function Header() {
   };
 
   const handleLogout = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      // Mock logout - just navigate to home
       toast({ title: "Logged out", description: "See you soon!" });
       navigate("/");
+    } catch (error) {
+      toast({ title: "Error", description: "Logout failed", variant: "destructive" });
     }
     setProfileOpen(false);
   };
@@ -185,24 +185,24 @@ export function Header() {
             </motion.button>
 
             {/* Profile Menu */}
-            {user ? (
-              <div className="relative" ref={profileRef}>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
-                >
-                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
-                    <User className="h-3.5 w-3.5 text-white" />
-                  </div>
-                  <span className="text-xs text-white hidden lg:block max-w-[80px] truncate">
-                    {user.email?.split("@")[0] || "User"}
-                  </span>
-                  <motion.div animate={{ rotate: profileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                  </motion.div>
-                </motion.button>
+            {/* Always show profile menu - no auth required */}
+            <div className="relative" ref={profileRef}>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
+              >
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+                  <User className="h-3.5 w-3.5 text-white" />
+                </div>
+                <span className="text-xs text-white hidden lg:block max-w-[80px] truncate">
+                  Guest User
+                </span>
+                <motion.div animate={{ rotate: profileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                </motion.div>
+              </motion.button>
 
                 <AnimatePresence>
                   {profileOpen && (
