@@ -204,77 +204,55 @@ export function Header() {
                 </motion.div>
               </motion.button>
 
-                <AnimatePresence>
-                  {profileOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.15, type: "spring", stiffness: 400 }}
-                      className="absolute right-0 mt-2 w-52 backdrop-blur-2xl bg-gray-950/90 border border-white/10 rounded-2xl shadow-glass-lg overflow-hidden"
-                    >
-                      {/* User info */}
-                      <div className="px-4 py-3 border-b border-white/10">
-                        <p className="text-sm font-medium text-white truncate">{user.email}</p>
-                        <p className="text-xs text-cyan-400 mt-0.5">Patient Account</p>
-                      </div>
-
-                      {/* Menu items */}
-                      <div className="p-2 space-y-1">
-                        {[
-                          { label: "Account Settings", icon: Settings, href: "/account" },
-                          { label: "Health Dashboard", icon: Heart, href: "/health-dashboard" },
-                          { label: "My Devices", icon: Watch, href: "/devices" },
-                          { label: "Privacy & Security", icon: Shield, href: "/account" },
-                        ].map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setProfileOpen(false)}>
-                            <motion.div
-                              whileHover={{ x: 4 }}
-                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
-                            >
-                              <item.icon className="h-4 w-4" />
-                              {item.label}
-                            </motion.div>
-                          </Link>
-                        ))}
-                      </div>
-
-                      <div className="p-2 border-t border-white/10">
-                        <motion.button
-                          whileHover={{ x: 4 }}
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Sign out
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="px-4 py-1.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15, type: "spring", stiffness: 400 }}
+                    className="absolute right-0 mt-2 w-52 backdrop-blur-2xl bg-gray-950/90 border border-white/10 rounded-2xl shadow-glass-lg overflow-hidden"
                   >
-                    Sign in
-                  </motion.button>
-                </Link>
-                <Link to="/signup">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 shadow-neon transition-all"
-                  >
-                    Get Started
-                  </motion.button>
-                </Link>
-              </div>
-            )}
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-white/10">
+                      <p className="text-sm font-medium text-white truncate">guest@example.com</p>
+                      <p className="text-xs text-cyan-400 mt-0.5">Patient Account</p>
+                    </div>
+
+                    {/* Menu items */}
+                    <div className="p-2 space-y-1">
+                      {[
+                        { label: "Account Settings", icon: Settings, href: "/account" },
+                        { label: "Health Dashboard", icon: Heart, href: "/health-dashboard" },
+                        { label: "My Devices", icon: Watch, href: "/devices" },
+                        { label: "Privacy & Security", icon: Shield, href: "/account" },
+                      ].map((item) => (
+                        <Link key={item.href} to={item.href} onClick={() => setProfileOpen(false)}>
+                          <motion.div
+                            whileHover={{ x: 4 }}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </motion.div>
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div className="p-2 border-t border-white/10">
+                      <motion.button
+                        whileHover={{ x: 4 }}
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign out
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Mobile menu button */}
             <motion.button
