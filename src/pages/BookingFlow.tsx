@@ -10,7 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useMockAuth";
 import { useToast } from "@/hooks/use-toast";
 import { mockDoctors, mockTimeSlots } from "@/data/mockData";
 import { format, addDays } from "date-fns";

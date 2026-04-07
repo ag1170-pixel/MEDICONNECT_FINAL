@@ -7,7 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { DoctorCard } from "@/components/doctors/DoctorCard";
 import { Autocomplete } from "@/components/ui/autocomplete";
-import { fetchSpecialties, fetchDoctors } from "@/services/supabaseService";
+import { fetchSpecialties, fetchDoctors } from "@/services/mockService";
 import { indianStates, doctorSpecialties } from "@/data/indianStates";
 import { useNavigate } from "react-router-dom";
 

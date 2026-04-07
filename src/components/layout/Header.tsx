@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 // import { useAuth } from "@/hooks/useAuth"; // Disabled Supabase Auth
 import { useToast } from "@/hooks/use-toast";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme.tsx";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

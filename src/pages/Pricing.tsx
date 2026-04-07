@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function Pricing() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -16,8 +16,10 @@ export default function Pricing() {
     try {
       setLoading(plan);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Mock authentication check
+      const mockUser = { email: 'demo@mediconnect.com' }; // Simulate logged in user
+      
+      if (!mockUser) {
         toast({
           title: "Authentication Required",
           description: "Please log in to access your health dashboard.",

@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -28,29 +27,27 @@ export default function Account() {
   }, []);
 
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate('/login');
-      return;
-    }
-    setUser(session.user);
+    // Mock authentication
+    const mockUser = { 
+      email: 'demo@mediconnect.com',
+      name: 'Demo User'
+    };
+    setUser(mockUser);
     await checkSubscription();
   };
 
   const checkSubscription = async () => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-      setSubscription(data);
+      
+      // Mock subscription data
+      const mockSubscription = {
+        subscribed: true,
+        subscription_tier: 'Premium',
+        subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      };
+      
+      setSubscription(mockSubscription);
     } catch (error) {
       console.error('Error checking subscription:', error);
       toast({
@@ -66,17 +63,10 @@ export default function Account() {
   const openCustomerPortal = async () => {
     try {
       setPortalLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await supabase.functions.invoke('customer-portal', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+      toast({
+        title: "Billing Portal",
+        description: "This would open the billing portal in a real application.",
       });
-
-      if (error) throw error;
-      window.open(data.url, '_blank');
     } catch (error) {
       toast({
         title: "Error",
@@ -89,7 +79,7 @@ export default function Account() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    // Mock sign out
     navigate('/');
   };
 

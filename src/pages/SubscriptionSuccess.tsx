@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function SubscriptionSuccess() {
@@ -26,14 +25,8 @@ export default function SubscriptionSuccess() {
 
   const refreshSubscription = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await supabase.functions.invoke('check-subscription', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-      }
+      // Mock subscription refresh - no actual Supabase call needed
+      console.log('Mock subscription refresh');
     } catch (error) {
       console.error('Error refreshing subscription:', error);
     } finally {
