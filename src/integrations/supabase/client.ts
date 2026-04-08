@@ -8,19 +8,16 @@ const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  // Fail fast with a clear message instead of a blank white screen.
-  // eslint-disable-next-line no-console
-  console.error(
-    "Missing Supabase env vars. Please set VITE_SUPABASE_URL and either VITE_SUPABASE_ANON_KEY or VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY."
-  );
-  throw new Error("Missing Supabase env vars");
-}
+// In demo mode (or on hosts where env vars aren't configured yet), don't hard-crash the app.
+// We'll still create a client with harmless placeholders; any DB/auth calls will simply fail,
+// but the UI can render using mock/simulated data.
+const RESOLVED_SUPABASE_URL = SUPABASE_URL || "https://placeholder.supabase.co";
+const RESOLVED_SUPABASE_KEY = SUPABASE_PUBLISHABLE_KEY || "placeholder-key";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+export const supabase = createClient<Database>(RESOLVED_SUPABASE_URL, RESOLVED_SUPABASE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
