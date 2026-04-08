@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Calendar, Clock, User, Phone, CheckCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,28 +10,51 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { useAuth } from "@/hooks/useMockAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { mockDoctors, mockTimeSlots } from "@/data/mockData";
-import { format, addDays } from "date-fns";
+import { format, addDays, parseISO } from "date-fns";
+import { addAppointment } from "@/services/appointmentsStorage";
 
 type BookingStep = 'slots' | 'details' | 'confirmation' | 'success';
 
 export default function BookingFlow() {
   const { doctorId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, loading } = useAuth();
   
   const [currentStep, setCurrentStep] = useState<BookingStep>('slots');
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState('');
-  const [patientName, setPatientName] = useState('');
-  const [patientPhone, setPatientPhone] = useState('');
+  const initialDateParam = searchParams.get("date");
+  const initialTimeParam = searchParams.get("time");
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (!initialDateParam) return new Date();
+    try {
+      return parseISO(initialDateParam);
+    } catch {
+      return new Date();
+    }
+  });
+  const [selectedTime, setSelectedTime] = useState(() => initialTimeParam || "");
+
+  const userFullName =
+    user?.user_metadata?.full_name || user?.full_name || user?.email?.split("@")[0] || "";
+  const userPhone = user?.user_metadata?.phone || user?.phone || "";
+
+  const [patientName, setPatientName] = useState(() => userFullName);
+  const [patientPhone, setPatientPhone] = useState(() => userPhone);
   const [isLoading, setIsLoading] = useState(false);
   const [bookingId, setBookingId] = useState<string>('');
 
   const doctor = mockDoctors.find(d => d.id === doctorId);
+
+  useEffect(() => {
+    // If user is loaded after initial render, prefill patient details (but don't override edits).
+    if (userFullName && !patientName) setPatientName(userFullName);
+    if (userPhone && !patientPhone) setPatientPhone(userPhone);
+  }, [patientName, patientPhone, userFullName, userPhone]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,6 +62,18 @@ export default function BookingFlow() {
       return;
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    // Keep the booking form in sync with the doctor-profile selected date/time.
+    if (initialDateParam) {
+      try {
+        setSelectedDate(parseISO(initialDateParam));
+      } catch {
+        // Ignore invalid date params.
+      }
+    }
+    setSelectedTime(initialTimeParam || "");
+  }, [doctorId, initialDateParam, initialTimeParam]);
 
   if (!doctor) {
     return (
@@ -97,11 +132,25 @@ export default function BookingFlow() {
     try {
       // Mock booking API call
       const mockBookingId = 'BK' + Date.now();
-      setBookingId(mockBookingId);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      const appointment = {
+        id: mockBookingId,
+        doctor_id: doctor.id,
+        doctor,
+        patient_name: patientName,
+        patient_phone: patientPhone,
+        appointment_date: format(selectedDate, "yyyy-MM-dd"),
+        appointment_time: selectedTime,
+        status: "upcoming" as const,
+        fees: doctor.fees,
+        booking_date: new Date().toISOString(),
+      };
+
+      addAppointment(appointment);
+      setBookingId(mockBookingId);
       setCurrentStep('success');
       
       toast({
@@ -131,7 +180,11 @@ export default function BookingFlow() {
                 {dates.map((date) => (
                   <Button
                     key={date.toISOString()}
-                    variant={selectedDate.toDateString() === date.toDateString() ? "default" : "outline"}
+                    variant={
+                      format(selectedDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+                        ? "default"
+                        : "outline"
+                    }
                     onClick={() => setSelectedDate(date)}
                     className="rounded-2xl flex flex-col py-4 h-auto"
                   >

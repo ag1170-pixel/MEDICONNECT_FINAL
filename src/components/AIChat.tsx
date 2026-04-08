@@ -11,14 +11,22 @@ interface Message {
 }
 
 const MOCK_RESPONSES: Record<string, string> = {
-  default: "I'm your MediConnect AI health assistant. I can help you understand your health metrics, explain alerts, and suggest actions. What would you like to know?",
-  heart: "Your heart rate data shows a normal sinus rhythm. A resting heart rate between 60-100 BPM is considered normal. If you're seeing elevated readings, consider resting for 5-10 minutes and rechecking. Persistent high heart rate (>100 BPM at rest) should be discussed with your doctor.",
-  spo2: "Blood oxygen saturation (SpO2) measures how much oxygen your red blood cells are carrying. Normal levels are 95-100%. Readings below 95% may indicate a respiratory issue and you should consult your doctor. Readings below 90% require immediate medical attention.",
-  fever: "A body temperature above 100.4°F (38°C) is considered a fever. Stay hydrated, rest, and monitor your temperature regularly. If fever persists more than 3 days or exceeds 103°F (39.4°C), seek medical care immediately.",
-  stress: "Chronic high stress can significantly impact your health. I recommend trying the 4-7-8 breathing technique: inhale for 4 seconds, hold for 7, exhale for 8. Regular exercise, adequate sleep (7-9 hours), and mindfulness practices can help manage stress levels.",
-  blood_pressure: "Blood pressure is measured as systolic/diastolic (e.g., 120/80 mmHg). Optimal is below 120/80. Between 120-129/<80 is elevated, 130-139/80-89 is Stage 1 hypertension, and 140+/90+ is Stage 2. A healthy diet low in sodium, regular exercise, and stress management can help maintain healthy blood pressure.",
-  sleep: "Quality sleep is crucial for health. Adults need 7-9 hours per night. Poor sleep can affect immunity, metabolism, and mental health. Tips for better sleep: maintain a consistent schedule, avoid screens 1 hour before bed, keep your room cool and dark, and limit caffeine after 2 PM.",
-  device: "Your MediConnect Band and Smart Ring continuously monitor your vitals including heart rate, SpO2, skin temperature, and activity levels. The ring also features fingerprint identity verification and NFC capabilities for contactless health data sharing.",
+  default:
+    "Hi, I’m MediAI, your MediConnect health assistant. I can break down your vitals, explain alerts in plain language, and suggest next steps. What would you like to understand better right now?",
+  heart:
+    "From a health perspective, resting heart rates between 60‑100 BPM are usually considered within the normal range for adults. If you’re noticing consistently higher numbers, try sitting quietly for 5–10 minutes and re‑checking. Persistent readings above 100 BPM at rest, or any associated chest pain, dizziness, or shortness of breath, should be discussed with a doctor as soon as possible.",
+  spo2:
+    "SpO₂ measures how much oxygen your red blood cells are carrying. For most healthy adults, 95–100% is typical. Repeated readings under 95% can point to breathing or lung issues and are worth mentioning to your doctor. If you ever see values under 90%, especially with shortness of breath, that’s an emergency and you should seek urgent medical care.",
+  fever:
+    "A temperature above 100.4°F (38°C) is generally considered a fever. Focus on rest, staying hydrated, and light clothing. Monitor your temperature every few hours; if it lasts more than 3 days, or goes above 103°F (39.4°C), you should contact a healthcare professional or urgent care immediately.",
+  stress:
+    "Ongoing stress can affect sleep, blood pressure, heart rate, and even your immune system. One quick technique you can try is the 4‑7‑8 breath: inhale through your nose for 4 seconds, hold for 7, then exhale slowly for 8. Building a routine with regular movement, consistent sleep, and short mindfulness breaks during the day can steadily reduce stress over time.",
+  blood_pressure:
+    "Blood pressure is written as systolic over diastolic (for example, 120/80 mmHg). Under 120/80 is considered optimal. 120–129/<80 is ‘elevated’, 130–139/80–89 is Stage 1 hypertension, and 140+/90+ is Stage 2. Limiting added salt, staying active most days of the week, managing stress, and following your doctor’s medication plan (if prescribed) are key parts of long‑term blood pressure control.",
+  sleep:
+    "Most adults do best with 7–9 hours of fairly consistent, good‑quality sleep. Poor sleep over time can affect mood, focus, metabolism, and heart health. Helpful habits include keeping a regular sleep and wake time, avoiding heavy meals and screens for about an hour before bed, keeping your room cool and dark, and limiting caffeine later in the day.",
+  device:
+    "Your MediConnect Band and Smart Ring are designed to quietly track your day‑to‑day health. They monitor heart rate, SpO₂, skin temperature, movement, and sleep patterns. The ring also supports fingerprint identification and NFC, so you can securely share key health data with approved providers when needed.",
 };
 
 function getAIResponse(message: string): string {
@@ -38,13 +46,18 @@ function getAIResponse(message: string): string {
   } else if (lower.includes("device") || lower.includes("band") || lower.includes("ring")) {
     return MOCK_RESPONSES.device;
   } else if (lower.includes("alert") || lower.includes("warning") || lower.includes("critical")) {
-    return "Alerts in MediConnect are generated when your health metrics fall outside normal ranges. Each alert is color-coded by severity: red for critical (immediate action needed), orange for warning (monitor closely), and blue for informational. You can resolve an alert once you've addressed the underlying concern.";
+    return "MediConnect raises an alert when one of your tracked metrics moves outside the healthy range for your profile. Alerts are color‑coded by urgency: red for situations that may need immediate attention, orange for values to watch closely, and blue for informational changes or trends. When you open an alert, you’ll see what triggered it, why it matters, and suggested actions you can take or discuss with your doctor.";
   } else if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
-    return "Hello! I'm MediAI, your intelligent health assistant powered by MediConnect. I'm here to help you understand your health data, explain alerts, and provide personalized health insights. How can I assist you today?";
+    const greetings = [
+      "Hi there, I’m MediAI. Tell me what you’d like to understand about your health today.",
+      "Hello! I’m your MediConnect assistant. What would you like to check or clarify?",
+      "Hey, glad you reached out. Which health metric or alert should we look at together?",
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
   } else if (lower.includes("help") || lower.includes("what can you")) {
-    return "I can help you with:\n• **Understanding health metrics** — heart rate, SpO2, blood pressure, temperature\n• **Explaining alerts** — what they mean and what to do\n• **Health tips** — sleep, stress, nutrition, exercise\n• **Device info** — MediConnect Band and Smart Ring features\n• **General health questions** — symptoms, prevention, wellness\n\nJust ask me anything!";
+    return "Here’s how I can support you:\n• **Explain your metrics** — heart rate, SpO₂, blood pressure, temperature and more\n• **Break down alerts** — what triggered them, how serious they are, and what to consider next\n• **Offer gentle guidance** — on sleep, stress, movement, and daily habits\n• **Clarify device features** — how your MediConnect Band and Smart Ring collect and use data\n\nYou can start with something simple, like “Explain my sleep score” or “Why did I get a high heart rate alert?”.";
   }
-  return "I understand you're asking about your health. Based on your current metrics, everything looks generally stable. For specific concerns, I recommend consulting with your assigned doctor through the Doctor Dashboard. Is there a particular health metric or symptom you'd like me to explain in more detail?";
+  return "I’ve picked up that you’re asking about your health, but I might need a bit more detail to give a useful answer. Try mentioning the specific metric, symptom, or alert you’re concerned about (for example: “night‑time heart rate” or “low SpO₂ alert”). For anything urgent or worrying, always contact a doctor or emergency services rather than relying only on this chat.";
 }
 
 export function AIChat() {

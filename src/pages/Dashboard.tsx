@@ -11,6 +11,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { mockDoctors } from "@/data/mockData";
+import { cancelAppointment, loadAppointments } from "@/services/appointmentsStorage";
 import { Appointment } from "@/types";
 import { format } from "date-fns";
 
@@ -22,13 +23,20 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Mock appointments data
+    const stored = loadAppointments();
+    if (stored.length > 0) {
+      setAppointments(stored);
+      setIsLoading(false);
+      return;
+    }
+
+    // Fallback mock appointments for first-time UI.
     const mockAppointments: Appointment[] = [
       {
         id: "1",
         doctor_id: "1",
         doctor: mockDoctors[0],
-        patient_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User",
+        patient_name: user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Guest User",
         patient_phone: user?.user_metadata?.phone || "+91 9876543210",
         appointment_date: "2024-01-15",
         appointment_time: "10:00 AM",
@@ -40,7 +48,7 @@ export default function Dashboard() {
         id: "2",
         doctor_id: "2",
         doctor: mockDoctors[1],
-        patient_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User",
+        patient_name: user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Guest User",
         patient_phone: user?.user_metadata?.phone || "+91 9876543210",
         appointment_date: "2024-01-20",
         appointment_time: "02:30 PM",
@@ -52,7 +60,7 @@ export default function Dashboard() {
         id: "3",
         doctor_id: "3",
         doctor: mockDoctors[2],
-        patient_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User",
+        patient_name: user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Guest User",
         patient_phone: user?.user_metadata?.phone || "+91 9876543210",
         appointment_date: "2024-01-05",
         appointment_time: "11:00 AM",
@@ -93,12 +101,10 @@ export default function Dashboard() {
 
   const handleCancelAppointment = async (appointmentId: string) => {
     try {
-      // Mock cancellation
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === appointmentId 
-            ? { ...apt, status: 'cancelled' as const }
-            : apt
+      cancelAppointment(appointmentId);
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === appointmentId ? { ...apt, status: "cancelled" as const } : apt
         )
       );
       
@@ -171,7 +177,11 @@ export default function Dashboard() {
                 <Separator className="my-6" />
 
                 <div className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start rounded-2xl">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start rounded-2xl"
+                    onClick={() => navigate('/account')}
+                  >
                     <Settings className="h-4 w-4 mr-2" />
                     Profile Settings
                   </Button>

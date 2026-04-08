@@ -66,7 +66,7 @@ export default function DoctorDashboard() {
   const [notes, setNotes] = useState<Array<{ id: string; patient: string; content: string; diagnosis: string; prescription: string; time: string }>>([]);
   const [activeTab, setActiveTab] = useState<"metrics" | "notes" | "history">("metrics");
 
-  const { metrics, history, alerts, resolveAlert } = useSimulatedData(3000);
+  const { metrics, history, alerts, resolveAlert } = useSimulatedData(selectedPatient.id, 3000);
 
   const filteredPatients = MOCK_PATIENTS.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -304,7 +304,7 @@ export default function DoctorDashboard() {
                           placeholder="Primary diagnosis..."
                           value={diagnosis}
                           onChange={(e) => setDiagnosis(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-cyan-500/40 transition-colors"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-muted-foreground outline-none focus:border-cyan-500/40 transition-colors"
                         />
                       </div>
                       <div>
@@ -314,7 +314,7 @@ export default function DoctorDashboard() {
                           placeholder="Medications & dosage..."
                           value={prescription}
                           onChange={(e) => setPrescription(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-cyan-500/40 transition-colors"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-muted-foreground outline-none focus:border-cyan-500/40 transition-colors"
                         />
                       </div>
                       <div>
@@ -324,7 +324,7 @@ export default function DoctorDashboard() {
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           rows={3}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-cyan-500/40 transition-colors resize-none"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-muted-foreground outline-none focus:border-cyan-500/40 transition-colors resize-none"
                         />
                       </div>
                       <motion.button

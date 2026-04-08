@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { AuthUser } from '@/types/auth';
 
 interface AuthContextType {
@@ -16,112 +15,51 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  // Treat everyone as signed-in with a dummy user
+  const [user, setUser] = useState<AuthUser | null>({
+    id: "demo-user",
+    email: "demo@mediconnect.local",
+    full_name: "Demo User",
+  } as AuthUser);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting initial session:', error);
-        } else {
-          setSession(session);
-          setUser(session?.user as AuthUser || null);
-        }
-      } catch (error) {
-        console.error('Error in getInitialSession:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session);
-        setSession(session);
-        setUser(session?.user as AuthUser || null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (!error && data.session) {
-        setSession(data.session);
-        setUser(data.user as AuthUser);
-      }
-      
-      return { error, data };
-    } catch (error) {
-      console.error('Error in signIn:', error);
-      return { error };
-    }
+    // Fake sign-in: mark user as logged in locally, no Supabase call
+    setUser({
+      id: "demo-user",
+      email,
+      full_name: "Demo User",
+    } as AuthUser);
+    setSession(null);
+    setLoading(false);
+    return { data: { user: { email } }, error: undefined };
   };
 
   const resendConfirmationEmail = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-      });
-      return { error };
-    } catch (error) {
-      console.error('Error resending confirmation:', error);
-      return { error };
-    }
+    // No-op in demo mode
+    return { error: undefined };
   };
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            phone: phone,
-          },
-        },
-      });
-      
-      if (!error && data.session) {
-        setSession(data.session);
-        setUser(data.user as AuthUser);
-      }
-      
-      return { error, data };
-    } catch (error) {
-      console.error('Error in signUp:', error);
-      return { error };
-    }
+    // Fake sign-up: immediately treat as signed-in
+    setUser({
+      id: "demo-user",
+      email,
+      full_name: fullName || "Demo User",
+      phone,
+    } as AuthUser);
+    setSession(null);
+    setLoading(false);
+    return { data: { user: { email, full_name: fullName } }, error: undefined };
   };
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
-        setSession(null);
-        setUser(null);
-      }
-      return { error };
-    } catch (error) {
-      console.error('Error in signOut:', error);
-      return { error };
-    }
+    // Fake sign-out: clear local user but keep app usable
+    setSession(null);
+    setUser(null);
+    setLoading(false);
+    return { error: undefined };
   };
 
   const value = {

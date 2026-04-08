@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
@@ -21,22 +21,17 @@ export function Autocomplete({
   icon
 }: AutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (value.length > 0) {
-      const filtered = suggestions.filter(suggestion =>
-        suggestion.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredSuggestions(filtered.slice(0, 8));
-      setIsOpen(filtered.length > 0);
-    } else {
-      setFilteredSuggestions([]);
-      setIsOpen(false);
-    }
-  }, [value, suggestions]);
+  const filteredSuggestions = useMemo(() => {
+    if (!isOpen) return [];
+    const q = value.trim().toLowerCase();
+    const base = q.length
+      ? suggestions.filter((suggestion) => suggestion.toLowerCase().includes(q))
+      : suggestions;
+    return base.slice(0, 8);
+  }, [isOpen, suggestions, value]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,9 +66,7 @@ export function Autocomplete({
           onChange={(e) => onChange(e.target.value)}
           className={`${icon ? "pl-10" : ""} pr-10 ${className}`}
           onFocus={() => {
-            if (filteredSuggestions.length > 0) {
-              setIsOpen(true);
-            }
+            setIsOpen(true);
           }}
         />
         <Button
@@ -81,7 +74,11 @@ export function Autocomplete({
           variant="ghost"
           size="sm"
           className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 h-auto"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            setIsOpen((v) => !v);
+            // Keep focus so the user can immediately type after opening.
+            requestAnimationFrame(() => inputRef.current?.focus());
+          }}
         >
           <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </Button>

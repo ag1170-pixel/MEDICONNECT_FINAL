@@ -10,6 +10,7 @@ import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { CartDrawer } from "@/components/CartDrawer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Direct imports instead of lazy loading to avoid deployment issues
 import Home from "./pages/Home";
@@ -29,6 +30,11 @@ import RingSubscription from "./pages/RingSubscription";
 import Medicine from "./pages/Medicine";
 import LabTests from "./pages/LabTests";
 import NotFound from "./pages/NotFound";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import BookAppointment from "./pages/BookAppointment";
+import HealthCheckups from "./pages/HealthCheckups";
+import Specialties from "./pages/Specialties";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,59 +86,66 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
-            <Suspense fallback={<LoadingScreen />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/doctor/:id" element={<DoctorProfile />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/book/:doctorId" element={
-                  <ProtectedRoute>
-                    <BookingFlow />
-                  </ProtectedRoute>
-                } />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/account" element={
-                  <ProtectedRoute>
-                    <Account />
-                  </ProtectedRoute>
-                } />
-                <Route path="/subscription-success" element={
-                  <ProtectedRoute>
-                    <SubscriptionSuccess />
-                  </ProtectedRoute>
-                } />
-                <Route path="/health-dashboard" element={
-                  <ProtectedRoute>
-                    <HealthDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/doctor-dashboard" element={
-                  <ProtectedRoute>
-                    <DoctorDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/devices" element={
-                  <ProtectedRoute>
-                    <Devices />
-                  </ProtectedRoute>
-                } />
-                <Route path="/ring-subscription" element={
-                  <ProtectedRoute>
-                    <RingSubscription />
-                  </ProtectedRoute>
-                } />
-                <Route path="/medicine" element={<Medicine />} />
-                <Route path="/lab-tests" element={<LabTests />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingScreen />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/doctor/:id" element={<DoctorProfile />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/book/:doctorId" element={
+                    <ProtectedRoute>
+                      <BookingFlow />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/account" element={
+                    <ProtectedRoute>
+                      <Account />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/subscription-success" element={
+                    <ProtectedRoute>
+                      <SubscriptionSuccess />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/health-dashboard" element={
+                    <ProtectedRoute>
+                      <HealthDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/doctor-dashboard" element={
+                    <ProtectedRoute>
+                      <DoctorDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/devices" element={
+                    <ProtectedRoute>
+                      <Devices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/ring-subscription" element={
+                    <ProtectedRoute>
+                      <RingSubscription />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/medicine" element={<Medicine />} />
+                  <Route path="/lab-tests" element={<LabTests />} />
+                  <Route path="/specialties" element={<Specialties />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/book-appointment" element={<BookAppointment />} />
+                  <Route path="/health-checkup" element={<HealthCheckups />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
             <CartDrawer />
           </BrowserRouter>
         </CartProvider>

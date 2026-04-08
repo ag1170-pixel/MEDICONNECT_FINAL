@@ -14,11 +14,13 @@ import { format, addDays } from "date-fns";
 export default function DoctorProfile() {
   const { id } = useParams();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState<string>("");
   
   const doctor = mockDoctors.find(d => d.id === id);
 
   useEffect(() => {
     setSelectedDate(new Date());
+    setSelectedTime("");
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [id]);
   
@@ -224,10 +226,10 @@ export default function DoctorProfile() {
                     {availableSlots.map((slot) => (
                       <Button
                         key={slot.id}
-                        variant="outline"
+                        variant={selectedTime === slot.time ? "default" : "outline"}
                         size="sm"
                         className="rounded-2xl text-xs"
-                        onClick={() => {}}
+                        onClick={() => setSelectedTime(slot.time)}
                       >
                         {slot.time}
                       </Button>
@@ -235,7 +237,12 @@ export default function DoctorProfile() {
                   </div>
                 </div>
 
-                <Link to={`/book/${doctor.id}`} className="block w-full">
+                <Link
+                  to={`/book/${doctor.id}?date=${encodeURIComponent(
+                    format(selectedDate, "yyyy-MM-dd")
+                  )}&time=${encodeURIComponent(selectedTime || "")}`}
+                  className="block w-full"
+                >
                   <Button className="w-full rounded-2xl">
                     Book Appointment
                   </Button>

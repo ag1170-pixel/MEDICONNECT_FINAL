@@ -3,7 +3,19 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+// Prefer the standard Supabase env var name, but keep compatibility with the repo’s custom one.
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  // Fail fast with a clear message instead of a blank white screen.
+  // eslint-disable-next-line no-console
+  console.error(
+    "Missing Supabase env vars. Please set VITE_SUPABASE_URL and either VITE_SUPABASE_ANON_KEY or VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY."
+  );
+  throw new Error("Missing Supabase env vars");
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

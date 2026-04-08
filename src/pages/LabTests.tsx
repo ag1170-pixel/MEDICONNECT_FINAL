@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Calendar, Shield, Award, Clock, TestTube, Filter, Star, AlertCircle, FlaskConical, X, Plus, Home, CheckCircle } from "lucide-react";
+import { Search, Calendar, Shield, Award, Clock, TestTube, Filter, Star, AlertCircle, FlaskConical, X, Plus, Home, CheckCircle, Upload, FileText, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,12 @@ export default function LabTests() {
   const [sortBy, setSortBy] = useState('popularity');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
+
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [pendingPrescriptionTest, setPendingPrescriptionTest] = useState<LabTest | null>(null);
+  const [uploadedPrescriptionFiles, setUploadedPrescriptionFiles] = useState<File[]>([]);
+  const [isDraggingPrescription, setIsDraggingPrescription] = useState(false);
+  const prescriptionFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let filtered = [...mockLabTests];
@@ -59,24 +65,97 @@ export default function LabTests() {
   }, [searchQuery, selectedCategory, sortBy]);
 
   const handleBookTest = (test: LabTest) => {
-    addItem({
-      id: test.id,
-      name: test.name,
-      price: test.discounted_price || test.price,
-      quantity: 1,
-      type: 'lab test',
-      category: test.category
-    });
-    
-    toast({
-      title: "Test added to cart",
-      description: `${test.name} has been added to your cart.`,
-    });
-    setIsOpen(true);
+    // Lab tests require a doctor's order/prescription. We open a popup first
+    // and only add the test to cart after the upload.
+    setSelectedTest(null);
+    setPendingPrescriptionTest(test);
+    setUploadedPrescriptionFiles([]);
+    setIsPrescriptionModalOpen(true);
   };
 
   const handleViewDetails = (test: LabTest) => {
     setSelectedTest(test);
+  };
+
+  const closePrescriptionModal = () => {
+    setIsPrescriptionModalOpen(false);
+    setPendingPrescriptionTest(null);
+    setUploadedPrescriptionFiles([]);
+    setIsDraggingPrescription(false);
+    if (prescriptionFileInputRef.current) {
+      prescriptionFileInputRef.current.value = "";
+    }
+  };
+
+  const handlePrescriptionFileUpload = (files: FileList | null) => {
+    if (!files) return;
+
+    const validFiles = Array.from(files).filter(file => {
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload JPG, PNG, or PDF files only.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: "Please upload files smaller than 10MB.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setUploadedPrescriptionFiles(prev => [...prev, ...validFiles]);
+      toast({
+        title: "Prescription uploaded",
+        description: `${validFiles.length} file(s) added.`,
+      });
+    }
+  };
+
+  const removeUploadedPrescriptionFile = (index: number) => {
+    setUploadedPrescriptionFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const confirmPrescriptionAndBook = () => {
+    if (!pendingPrescriptionTest) return;
+
+    if (uploadedPrescriptionFiles.length === 0) {
+      toast({
+        title: "Prescription required",
+        description: "Please upload a doctor's order/prescription to proceed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addItem({
+      id: pendingPrescriptionTest.id,
+      name: pendingPrescriptionTest.name,
+      price: pendingPrescriptionTest.discounted_price || pendingPrescriptionTest.price,
+      quantity: 1,
+      type: "lab test",
+      category: pendingPrescriptionTest.category,
+    });
+
+    toast({
+      title: "Test added to cart",
+      description: `${pendingPrescriptionTest.name} has been added to your cart.`,
+    });
+
+    setIsOpen(true);
+    closePrescriptionModal();
   };
 
   const LabTestDetailModal = () => {
@@ -240,6 +319,172 @@ export default function LabTests() {
     );
   };
 
+  const PrescriptionUploadModal = () => {
+    if (!isPrescriptionModalOpen || !pendingPrescriptionTest) return null;
+
+    return (
+      <AnimatePresence>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closePrescriptionModal}
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 400 }}
+            className="relative bg-background rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto border"
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={closePrescriptionModal}
+              className="absolute right-4 top-4 z-10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            <div className="p-6 pt-12">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <Upload className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold mb-1">Upload Doctor's Order</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Upload a valid prescription for{" "}
+                    <span className="font-medium text-foreground">{pendingPrescriptionTest.name}</span>{" "}
+                    to proceed.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-orange-50 dark:bg-orange-950/30 p-4 rounded-xl mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-orange-800 dark:text-orange-200 mb-2">
+                      Accepted formats
+                    </p>
+                    <ul className="text-orange-700 dark:text-orange-300 text-xs space-y-1">
+                      <li>• JPG / PNG / PDF up to 10MB</li>
+                      <li>• Clear image with doctor's name and details</li>
+                      <li>• All text visible (no blur)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upload Area */}
+              <div
+                className={`border-2 border-dashed rounded-2xl p-6 text-center transition-colors ${
+                  isDraggingPrescription
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/30 hover:border-primary/50"
+                }`}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingPrescription(false);
+                  handlePrescriptionFileUpload(e.dataTransfer.files);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingPrescription(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setIsDraggingPrescription(false);
+                }}
+              >
+                <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="font-medium">Drop files here or browse</p>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                  This demo stores files locally until you confirm.
+                </p>
+
+                <Button
+                  variant="outline"
+                  onClick={() => prescriptionFileInputRef.current?.click()}
+                  className="rounded-2xl"
+                >
+                  Choose Files
+                </Button>
+
+                <input
+                  ref={prescriptionFileInputRef}
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={(e) => handlePrescriptionFileUpload(e.target.files)}
+                  className="sr-only"
+                />
+              </div>
+
+              {/* Uploaded Files */}
+              {uploadedPrescriptionFiles.length > 0 && (
+                <div className="space-y-3 mt-5">
+                  <h4 className="font-medium">
+                    Uploaded Files ({uploadedPrescriptionFiles.length})
+                  </h4>
+                  {uploadedPrescriptionFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-sm">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeUploadedPrescriptionFile(index)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-2xl"
+                  onClick={closePrescriptionModal}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 rounded-2xl"
+                  size="lg"
+                  onClick={confirmPrescriptionAndBook}
+                  disabled={uploadedPrescriptionFiles.length === 0}
+                >
+                  Confirm & Book
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -280,6 +525,10 @@ export default function LabTests() {
               <p className="text-muted-foreground">
                 {filteredTests.length} test{filteredTests.length !== 1 ? 's' : ''} available
                 {searchQuery && ` for "${searchQuery}"`}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                For most lab tests, please upload your doctor's order in the popup after you click{" "}
+                <span className="font-medium text-foreground">Book Test</span>.
               </p>
             </div>
             
@@ -344,6 +593,31 @@ export default function LabTests() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* How Booking Works */}
+        <div className="bg-muted/50 rounded-2xl p-6 mb-6 border">
+          <h2 className="text-xl font-semibold mb-3">How Booking Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-background/70 rounded-xl p-4 border">
+              <p className="font-semibold mb-1">1. Choose your test</p>
+              <p className="text-muted-foreground">
+                Browse by category and compare price, rating, and report time.
+              </p>
+            </div>
+            <div className="bg-background/70 rounded-xl p-4 border">
+              <p className="font-semibold mb-1">2. Upload doctor's order</p>
+              <p className="text-muted-foreground">
+                After you click <span className="font-medium text-foreground">Book Test</span>, a popup will let you upload the prescription from your system.
+              </p>
+            </div>
+            <div className="bg-background/70 rounded-xl p-4 border">
+              <p className="font-semibold mb-1">3. Get your report</p>
+              <p className="text-muted-foreground">
+                Receive accurate digital reports; home collection is available for supported tests.
+              </p>
             </div>
           </div>
         </div>
@@ -488,6 +762,13 @@ export default function LabTests() {
                           </div>
                         </div>
 
+                        {test.home_collection && (
+                          <div className="flex items-center gap-2 mt-3 text-green-600 text-xs font-medium">
+                            <Home className="h-4 w-4" />
+                            Home sample collection available
+                          </div>
+                        )}
+
                         {/* Preparation Required */}
                         {test.preparation_required && (
                           <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl">
@@ -538,6 +819,7 @@ export default function LabTests() {
       
       {/* Lab Test Detail Modal */}
       <LabTestDetailModal />
+      <PrescriptionUploadModal />
     </div>
   );
 }

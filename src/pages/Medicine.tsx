@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, ShoppingCart, Shield, Award, Truck, Clock, Filter, Star, AlertTriangle, Pill } from "lucide-react";
+import { Search, ShoppingCart, Shield, Award, Truck, Clock, Filter, Star, AlertTriangle, Pill, Upload, X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,13 +16,19 @@ import { mockMedicines, medicineCategories, type Medicine } from "@/data/medicin
 export default function Medicine() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { addItem } = useCart();
+  const { addItem, setIsOpen } = useCart();
   const [filteredMedicines, setFilteredMedicines] = useState<Medicine[]>(mockMedicines);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [prescriptionFilter, setPrescriptionFilter] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
   const [showFilters, setShowFilters] = useState(false);
+
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [pendingPrescriptionMedicine, setPendingPrescriptionMedicine] = useState<Medicine | null>(null);
+  const [uploadedPrescriptionFiles, setUploadedPrescriptionFiles] = useState<File[]>([]);
+  const [isDraggingPrescription, setIsDraggingPrescription] = useState(false);
+  const prescriptionFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let filtered = [...mockMedicines];
@@ -64,11 +70,10 @@ export default function Medicine() {
 
   const handleAddToCart = (medicine: Medicine) => {
     if (medicine.prescription_required) {
-      toast({
-        title: "Prescription Required",
-        description: "This medicine requires a valid prescription. Please upload your prescription to proceed.",
-        variant: "destructive"
-      });
+      setPendingPrescriptionMedicine(medicine);
+      setUploadedPrescriptionFiles([]);
+      setIsPrescriptionModalOpen(true);
+      return;
     } else {
       addItem({
         id: medicine.id,
@@ -84,6 +89,241 @@ export default function Medicine() {
         description: `${medicine.name} has been added to your cart.`
       });
     }
+  };
+
+  const closePrescriptionModal = () => {
+    setIsPrescriptionModalOpen(false);
+    setPendingPrescriptionMedicine(null);
+    setUploadedPrescriptionFiles([]);
+    setIsDraggingPrescription(false);
+    if (prescriptionFileInputRef.current) {
+      prescriptionFileInputRef.current.value = "";
+    }
+  };
+
+  const handlePrescriptionFileUpload = (files: FileList | null) => {
+    if (!files) return;
+
+    const validFiles = Array.from(files).filter(file => {
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload JPG, PNG, or PDF files only.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: "Please upload files smaller than 10MB.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setUploadedPrescriptionFiles(prev => [...prev, ...validFiles]);
+      toast({
+        title: "Prescription uploaded",
+        description: `${validFiles.length} file(s) added.`,
+      });
+    }
+  };
+
+  const removeUploadedPrescriptionFile = (index: number) => {
+    setUploadedPrescriptionFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const confirmPrescriptionAndAdd = () => {
+    if (!pendingPrescriptionMedicine) return;
+
+    if (uploadedPrescriptionFiles.length === 0) {
+      toast({
+        title: "Prescription required",
+        description: "Please upload a doctor's order/prescription to proceed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addItem({
+      id: pendingPrescriptionMedicine.id,
+      name: pendingPrescriptionMedicine.name,
+      price: pendingPrescriptionMedicine.discounted_price || pendingPrescriptionMedicine.price,
+      quantity: 1,
+      type: "medicine",
+      category: pendingPrescriptionMedicine.category,
+    });
+
+    toast({
+      title: "Added to Cart",
+      description: `${pendingPrescriptionMedicine.name} has been added to your cart.`,
+    });
+    setIsOpen(true);
+    closePrescriptionModal();
+  };
+
+  const PrescriptionUploadModal = () => {
+    if (!isPrescriptionModalOpen || !pendingPrescriptionMedicine) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={closePrescriptionModal}
+        />
+
+        {/* Modal */}
+        <div className="relative bg-background rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto border">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={closePrescriptionModal}
+            className="absolute right-4 top-4 z-10"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+
+          <div className="p-6 pt-12">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Upload className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold mb-1">Upload Prescription</h2>
+                <p className="text-sm text-muted-foreground">
+                  Upload a valid prescription for{" "}
+                  <span className="font-medium text-foreground">{pendingPrescriptionMedicine.name}</span>{" "}
+                  to proceed.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 dark:bg-orange-950/30 p-4 rounded-xl mb-4">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-orange-800 dark:text-orange-200 mb-2">
+                    Accepted formats
+                  </p>
+                  <ul className="text-orange-700 dark:text-orange-300 text-xs space-y-1">
+                    <li>• JPG / PNG / PDF up to 10MB</li>
+                    <li>• Clear image with doctor's details</li>
+                    <li>• All text visible (no blur)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-2xl p-6 text-center transition-colors ${
+                isDraggingPrescription
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/30 hover:border-primary/50"
+              }`}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingPrescription(false);
+                handlePrescriptionFileUpload(e.dataTransfer.files);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingPrescription(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setIsDraggingPrescription(false);
+              }}
+            >
+              <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <p className="font-medium">Drop files here or browse</p>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">
+                Files are stored locally in this demo flow.
+              </p>
+
+              <Button
+                variant="outline"
+                onClick={() => prescriptionFileInputRef.current?.click()}
+                className="rounded-2xl"
+              >
+                Choose Files
+              </Button>
+
+              <input
+                ref={prescriptionFileInputRef}
+                type="file"
+                multiple
+                accept=".jpg,.jpeg,.png,.pdf"
+                onChange={(e) => handlePrescriptionFileUpload(e.target.files)}
+                className="sr-only"
+              />
+            </div>
+
+            {/* Uploaded Files */}
+            {uploadedPrescriptionFiles.length > 0 && (
+              <div className="space-y-3 mt-5">
+                <h4 className="font-medium">
+                  Uploaded Files ({uploadedPrescriptionFiles.length})
+                </h4>
+                {uploadedPrescriptionFiles.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeUploadedPrescriptionFile(index)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-2xl"
+                onClick={closePrescriptionModal}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 rounded-2xl"
+                size="lg"
+                onClick={confirmPrescriptionAndAdd}
+                disabled={uploadedPrescriptionFiles.length === 0}
+              >
+                Confirm & Add
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -165,6 +405,31 @@ export default function Medicine() {
             </Select>
           </div>
         </div>
+
+          {/* How it works */}
+          <div className="bg-muted/50 rounded-2xl p-6 mb-6 border">
+            <h2 className="text-xl font-semibold mb-3">How Pharmacy Delivery Works</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-background/70 rounded-xl p-4 border">
+                <p className="font-semibold mb-1">1. Browse & choose</p>
+                <p className="text-muted-foreground">
+                  Search medicines by name, generic, or intended use.
+                </p>
+              </div>
+              <div className="bg-background/70 rounded-xl p-4 border">
+                <p className="font-semibold mb-1">2. Rx verification (if required)</p>
+                <p className="text-muted-foreground">
+                  Medicines marked as <span className="font-medium text-foreground">Prescription Required</span> go through pharmacist verification.
+                </p>
+              </div>
+              <div className="bg-background/70 rounded-xl p-4 border">
+                <p className="font-semibold mb-1">3. Receive your order</p>
+                <p className="text-muted-foreground">
+                  Get doorstep delivery with clear order confirmation and support.
+                </p>
+              </div>
+            </div>
+          </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
@@ -267,6 +532,16 @@ export default function Medicine() {
                           <h3 className="font-semibold text-lg leading-tight">{medicine.name}</h3>
                           <p className="text-sm text-muted-foreground">{medicine.generic_name}</p>
                           <p className="text-xs text-muted-foreground">by {medicine.manufacturer}</p>
+
+                          <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                            {medicine.description}
+                          </p>
+
+                          {medicine.warnings && medicine.warnings.length > 0 && (
+                            <p className="text-xs text-orange-700 mt-2">
+                              Safety: {medicine.warnings[0]}
+                            </p>
+                          )}
                         </div>
 
                         {/* Rating */}
@@ -343,6 +618,7 @@ export default function Medicine() {
       </div>
 
       <Footer />
+      <PrescriptionUploadModal />
     </div>
   );
 }

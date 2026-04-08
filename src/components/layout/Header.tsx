@@ -257,16 +257,24 @@ export function Header() {
 
                     {/* Menu items */}
                     <div className="p-2 space-y-1">
-                      {user ? [
-                        { label: "Account Settings", icon: Settings, href: "/account" },
-                        { label: "Health Dashboard", icon: Heart, href: "/health-dashboard" },
-                        { label: "My Devices", icon: Watch, href: "/devices" },
-                        { label: "Privacy & Security", icon: Shield, href: "/account" },
-                      ] : [
-                        { label: "Sign In", icon: User, href: "/login" },
-                        { label: "Create Account", icon: User, href: "/signup" },
-                      ].map((item: NavItem) => (
-                        <Link key={item.href} to={item.href} onClick={() => setProfileOpen(false)}>
+                      {(
+                        user
+                          ? [
+                              { label: "Account Settings", icon: Settings, href: "/account" },
+                              { label: "Health Dashboard", icon: Heart, href: "/health-dashboard" },
+                              { label: "My Devices", icon: Watch, href: "/devices" },
+                              { label: "Privacy & Security", icon: Shield, href: "/account" },
+                            ]
+                          : [
+                              { label: "Sign In", icon: User, href: "/login" },
+                              { label: "Create Account", icon: User, href: "/signup" },
+                            ]
+                      ).map((item: NavItem) => (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          onClick={() => setProfileOpen(false)}
+                        >
                           <motion.div
                             whileHover={{ x: 4 }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
