@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Heart, Activity, Thermometer, Droplets, Brain, Moon,
@@ -10,6 +10,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { AlertsPanel } from "@/components/AlertCard";
 import { AIChat } from "@/components/AIChat";
 import { useSimulatedData } from "@/hooks/useSimulatedData";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line
@@ -44,6 +45,7 @@ export default function HealthDashboard() {
   const { metrics, history, alerts, deviceStatus, resolveAlert, triggerAlert } = useSimulatedData(3000);
   const [emergencyActive, setEmergencyActive] = useState(false);
   const [activeChart, setActiveChart] = useState<"heartRate" | "spo2" | "stress">("heartRate");
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
 
   const chartConfig = {
     heartRate: { key: "heartRate", name: "Heart Rate", color: "#f87171", unit: "BPM" },
@@ -58,6 +60,32 @@ export default function HealthDashboard() {
     triggerAlert("heart_rate");
     setTimeout(() => setEmergencyActive(false), 5000);
   };
+
+  // Supabase Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel("health_metrics_realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "health_metrics" },
+        (payload) => {
+          console.log("New health metric received:", payload);
+          // Handle new real-time data here
+          // You could update the metrics state with the new data
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          setRealtimeConnected(true);
+        } else {
+          setRealtimeConnected(false);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const getHeartStatus = (): "normal" | "warning" | "critical" | "good" => {
     if (metrics.heartRate > 100) return "critical";
@@ -80,7 +108,16 @@ export default function HealthDashboard() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <motion.div className="w-2 h-2 rounded-full bg-green-400" animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }} transition={{ duration: 2, repeat: Infinity }} />
-              <span className="text-xs font-medium text-green-400 uppercase tracking-widest">Live Monitoring</span>
+              <span className="text-xs font-medium text-green-400 uppercase tracking-widest">{realtimeConnected ? "Supabase Live" : "Live Monitoring"}</span>
+              {realtimeConnected && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="ml-2 px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-400 font-medium"
+                >
+                  Connected
+                </motion.div>
+              )}
             </div>
             <h1 className="text-3xl font-bold text-white">Health <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Dashboard</span></h1>
             <p className="text-muted-foreground mt-1">Real-time vitals from your MediConnect devices</p>

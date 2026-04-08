@@ -33,6 +33,7 @@ export interface LabTest {
   rating: number;
   reviews_count: number;
   popular: boolean;
+  home_collection?: boolean;
 }
 
 export const medicineCategories = [
@@ -177,7 +178,8 @@ export const mockLabTests: LabTest[] = [
     report_time: "4-6 hours",
     rating: 4.8,
     reviews_count: 5200,
-    popular: true
+    popular: true,
+    home_collection: true
   },
   {
     id: "2",
@@ -191,7 +193,8 @@ export const mockLabTests: LabTest[] = [
     report_time: "6-8 hours",
     rating: 4.7,
     reviews_count: 3100,
-    popular: true
+    popular: true,
+    home_collection: true
   },
   {
     id: "3",
@@ -206,7 +209,8 @@ export const mockLabTests: LabTest[] = [
     report_time: "6-8 hours",
     rating: 4.6,
     reviews_count: 2800,
-    popular: true
+    popular: true,
+    home_collection: true
   },
   {
     id: "4",
@@ -220,7 +224,8 @@ export const mockLabTests: LabTest[] = [
     report_time: "8-12 hours",
     rating: 4.7,
     reviews_count: 2200,
-    popular: true
+    popular: true,
+    home_collection: true
   },
   {
     id: "5",
@@ -235,7 +240,8 @@ export const mockLabTests: LabTest[] = [
     report_time: "6-8 hours",
     rating: 4.5,
     reviews_count: 1900,
-    popular: false
+    popular: false,
+    home_collection: true
   },
   {
     id: "6",
@@ -249,7 +255,8 @@ export const mockLabTests: LabTest[] = [
     report_time: "12-24 hours",
     rating: 4.6,
     reviews_count: 1600,
-    popular: false
+    popular: false,
+    home_collection: true
   },
   {
     id: "7",
@@ -264,6 +271,7 @@ export const mockLabTests: LabTest[] = [
     report_time: "24-48 hours",
     rating: 4.9,
     reviews_count: 4500,
-    popular: true
+    popular: true,
+    home_collection: true
   }
 ];

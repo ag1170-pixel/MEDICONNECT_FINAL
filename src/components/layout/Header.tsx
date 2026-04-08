@@ -1,17 +1,25 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, User, LogOut, Stethoscope, Activity, Watch,
   Heart, ChevronDown, Menu, X, Moon, Sun, Settings, Shield,
-  LayoutDashboard, Cpu, UserCog, Pill, FlaskConical
+  LayoutDashboard, Cpu, UserCog, Pill, FlaskConical, ShoppingCart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { useAuth } from "@/hooks/useAuth"; // Disabled Supabase Auth
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/useTheme.tsx";
+import { useCart } from "@/context/CartContext";
+import type { ComponentType } from "react";
 
-const navLinks = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: ComponentType<any>;
+}
+
+const navLinks: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Health", href: "/health-dashboard", icon: Heart },
   { label: "Devices", href: "/devices", icon: Cpu },
@@ -31,8 +39,9 @@ export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  // const { user, signOut } = useAuth(); // Disabled Supabase Auth
+  const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { totalItems, setIsOpen } = useCart();
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,9 +73,13 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      // Mock logout - just navigate to home
-      toast({ title: "Logged out", description: "See you soon!" });
-      navigate("/");
+      const { error } = await signOut();
+      if (error) {
+        toast({ title: "Logout failed", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Logged out successfully", description: "See you soon!" });
+        navigate("/");
+      }
     } catch (error) {
       toast({ title: "Error", description: "Logout failed", variant: "destructive" });
     }
@@ -170,6 +183,25 @@ export function Header() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-1.5 ml-auto lg:ml-0">
+            {/* Cart button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsOpen(true)}
+              className="relative p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              {totalItems > 0 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
+                >
+                  {totalItems > 9 ? '9+' : totalItems}
+                </motion.div>
+              )}
+            </motion.button>
+
             {/* Dark mode toggle */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -185,7 +217,7 @@ export function Header() {
             </motion.button>
 
             {/* Profile Menu */}
-            {/* Always show profile menu - no auth required */}
+            {/* User Profile Menu */}
             <div className="relative" ref={profileRef}>
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -197,7 +229,7 @@ export function Header() {
                   <User className="h-3.5 w-3.5 text-white" />
                 </div>
                 <span className="text-xs text-white hidden lg:block max-w-[80px] truncate">
-                  Guest User
+                  {user ? user.email?.split('@')[0] : 'Guest User'}
                 </span>
                 <motion.div animate={{ rotate: profileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                   <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -215,18 +247,25 @@ export function Header() {
                   >
                     {/* User info */}
                     <div className="px-4 py-3 border-b border-white/10">
-                      <p className="text-sm font-medium text-white truncate">guest@example.com</p>
-                      <p className="text-xs text-cyan-400 mt-0.5">Patient Account</p>
+                      <p className="text-sm font-medium text-white truncate">
+                        {user?.email || 'guest@example.com'}
+                      </p>
+                      <p className="text-xs text-cyan-400 mt-0.5">
+                        {user?.user_metadata?.full_name || user?.email ? "Patient Account" : "Guest Account"}
+                      </p>
                     </div>
 
                     {/* Menu items */}
                     <div className="p-2 space-y-1">
-                      {[
+                      {user ? [
                         { label: "Account Settings", icon: Settings, href: "/account" },
                         { label: "Health Dashboard", icon: Heart, href: "/health-dashboard" },
                         { label: "My Devices", icon: Watch, href: "/devices" },
                         { label: "Privacy & Security", icon: Shield, href: "/account" },
-                      ].map((item) => (
+                      ] : [
+                        { label: "Sign In", icon: User, href: "/login" },
+                        { label: "Create Account", icon: User, href: "/signup" },
+                      ].map((item: NavItem) => (
                         <Link key={item.href} to={item.href} onClick={() => setProfileOpen(false)}>
                           <motion.div
                             whileHover={{ x: 4 }}

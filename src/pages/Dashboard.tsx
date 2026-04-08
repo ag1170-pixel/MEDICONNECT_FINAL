@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-// import { useAuth } from "@/hooks/useAuth"; // Disabled Supabase Auth
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { mockDoctors } from "@/data/mockData";
 import { Appointment } from "@/types";
@@ -17,7 +17,7 @@ import { format } from "date-fns";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  // const { user, loading, signOut } = useAuth(); // Disabled Supabase Auth
+  const { user, loading, signOut } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,8 +28,8 @@ export default function Dashboard() {
         id: "1",
         doctor_id: "1",
         doctor: mockDoctors[0],
-        patient_name: "Guest User",
-        patient_phone: "+91 9876543210",
+        patient_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User",
+        patient_phone: user?.user_metadata?.phone || "+91 9876543210",
         appointment_date: "2024-01-15",
         appointment_time: "10:00 AM",
         status: "upcoming",
@@ -40,8 +40,8 @@ export default function Dashboard() {
         id: "2",
         doctor_id: "2",
         doctor: mockDoctors[1],
-        patient_name: "Guest User",
-        patient_phone: "+91 9876543210",
+        patient_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User",
+        patient_phone: user?.user_metadata?.phone || "+91 9876543210",
         appointment_date: "2024-01-20",
         appointment_time: "02:30 PM",
         status: "upcoming",
@@ -52,8 +52,8 @@ export default function Dashboard() {
         id: "3",
         doctor_id: "3",
         doctor: mockDoctors[2],
-        patient_name: "Guest User",
-        patient_phone: "+91 9876543210",
+        patient_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User",
+        patient_phone: user?.user_metadata?.phone || "+91 9876543210",
         appointment_date: "2024-01-05",
         appointment_time: "11:00 AM",
         status: "completed",
@@ -68,12 +68,20 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      // Mock logout - just navigate to home
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
-      navigate("/", { replace: true });
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: "Logout failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Logged out successfully",
+          description: "You have been logged out of your account.",
+        });
+        navigate("/", { replace: true });
+      }
     } catch (error) {
       toast({
         title: "Logout failed",
@@ -142,21 +150,21 @@ export default function Dashboard() {
                   <Avatar className="h-20 w-20 mx-auto mb-4">
                     <AvatarImage src="" alt="User" />
                     <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                      GU
+                      {(user?.user_metadata?.full_name || user?.email?.split('@')[0] || "GU").substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg">Guest User</h3>
-                  <p className="text-muted-foreground">guest@mediconnect.com</p>
+                  <h3 className="font-semibold text-lg">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Guest User"}</h3>
+                  <p className="text-muted-foreground">{user?.email || 'guest@mediconnect.com'}</p>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <Phone className="h-4 w-4" />
-                    <span>+91 9876543210</span>
+                    <span>{user?.user_metadata?.phone || "+91 9876543210"}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4" />
-                    <span>guest@mediconnect.com</span>
+                    <span>{user?.email || 'guest@mediconnect.com'}</span>
                   </div>
                 </div>
 

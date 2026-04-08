@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -15,7 +16,7 @@ interface SubscriptionData {
 }
 
 export default function Account() {
-  const [user, setUser] = useState<any>(null);
+  const { user, signOut } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionData>({ subscribed: false });
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -23,18 +24,8 @@ export default function Account() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    // Mock authentication
-    const mockUser = { 
-      email: 'demo@mediconnect.com',
-      name: 'Demo User'
-    };
-    setUser(mockUser);
-    await checkSubscription();
-  };
+    checkSubscription();
+  }, [user]);
 
   const checkSubscription = async () => {
     try {
@@ -79,8 +70,28 @@ export default function Account() {
   };
 
   const handleSignOut = async () => {
-    // Mock sign out
-    navigate('/');
+    try {
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: "Sign out failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Signed out successfully",
+          description: "You have been logged out of your account.",
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: "Sign out failed", 
+        description: "An error occurred while signing out.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Star, MapPin, Clock, IndianRupee, Calendar, Award, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,11 @@ export default function DoctorProfile() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   const doctor = mockDoctors.find(d => d.id === id);
+
+  useEffect(() => {
+    setSelectedDate(new Date());
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [id]);
   
   if (!doctor) {
     return (

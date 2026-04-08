@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Calendar, Shield, Award, Clock, TestTube, Filter, Star, AlertCircle, FlaskConical } from "lucide-react";
+import { Search, Calendar, Shield, Award, Clock, TestTube, Filter, Star, AlertCircle, FlaskConical, X, Plus, Home, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,16 +10,20 @@ import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/context/CartContext";
 import { mockLabTests, labTestCategories, type LabTest } from "@/data/medicineData";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LabTests() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { addItem, setIsOpen } = useCart();
   const [filteredTests, setFilteredTests] = useState<LabTest[]>(mockLabTests);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
 
   useEffect(() => {
     let filtered = [...mockLabTests];
@@ -55,10 +59,185 @@ export default function LabTests() {
   }, [searchQuery, selectedCategory, sortBy]);
 
   const handleBookTest = (test: LabTest) => {
-    toast({
-      title: "Test Booking Initiated",
-      description: `${test.name} has been added to your cart. You can schedule the sample collection at your convenience.`,
+    addItem({
+      id: test.id,
+      name: test.name,
+      price: test.discounted_price || test.price,
+      quantity: 1,
+      type: 'lab test',
+      category: test.category
     });
+    
+    toast({
+      title: "Test added to cart",
+      description: `${test.name} has been added to your cart.`,
+    });
+    setIsOpen(true);
+  };
+
+  const handleViewDetails = (test: LabTest) => {
+    setSelectedTest(test);
+  };
+
+  const LabTestDetailModal = () => {
+    if (!selectedTest) return null;
+
+    return (
+      <AnimatePresence>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedTest(null)}
+          />
+          
+          {/* Modal */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+            className="relative bg-background rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border"
+          >
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedTest(null)}
+              className="absolute right-4 top-4 z-10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <TestTube className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold mb-2">{selectedTest.name}</h2>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="capitalize">
+                      {selectedTest.category}
+                    </Badge>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium ml-1">{selectedTest.rating}</span>
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({selectedTest.reviews_count} reviews)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                {selectedTest.description}
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-muted/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TestTube className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Sample Type</span>
+                  </div>
+                  <p className="font-semibold">{selectedTest.sample_type}</p>
+                </div>
+                <div className="bg-muted/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Report Time</span>
+                  </div>
+                  <p className="font-semibold">{selectedTest.report_time}</p>
+                </div>
+              </div>
+
+              {selectedTest.preparation_required && (
+                <div className="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-xl mb-6">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-amber-800 dark:text-amber-200 mb-2">
+                        Preparation Instructions
+                      </p>
+                      {selectedTest.preparation_instructions && (
+                        <ul className="text-amber-700 dark:text-amber-300 text-sm space-y-1">
+                          {selectedTest.preparation_instructions.map((instruction, index) => (
+                            <li key={index}>• {instruction}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-xl mb-6">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-green-800 dark:text-green-200 mb-2">
+                      Quality Assurance
+                    </p>
+                    <ul className="text-green-700 dark:text-green-300 text-sm space-y-1">
+                      <li>• NABL & CAP certified labs</li>
+                      <li>• Double verification process</li>
+                      <li>• Home sample collection available</li>
+                      <li>• Digital reports via email</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  {selectedTest.discounted_price ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl font-bold text-primary">
+                        ₹{selectedTest.discounted_price}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg text-muted-foreground line-through">
+                          ₹{selectedTest.price}
+                        </span>
+                        <Badge variant="secondary" className="text-xs">
+                          {Math.round((1 - selectedTest.discounted_price / selectedTest.price) * 100)}% OFF
+                        </Badge>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-2xl font-bold text-primary">₹{selectedTest.price}</span>
+                  )}
+                </div>
+                
+                {selectedTest.home_collection && (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <Home className="h-4 w-4" />
+                    <span className="text-sm font-medium">Home Collection</span>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                onClick={() => {
+                  handleBookTest(selectedTest);
+                  setSelectedTest(null);
+                }}
+                className="w-full rounded-2xl h-12 text-base font-medium"
+                size="lg"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Cart
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+    );
   };
 
   return (
@@ -341,7 +520,7 @@ export default function LabTests() {
                             <Calendar className="h-4 w-4 mr-2" />
                             Book Test
                           </Button>
-                          <Button variant="outline" className="rounded-2xl">
+                          <Button variant="outline" className="rounded-2xl" onClick={() => handleViewDetails(test)}>
                             View Details
                           </Button>
                         </div>
@@ -356,6 +535,9 @@ export default function LabTests() {
       </div>
 
       <Footer />
+      
+      {/* Lab Test Detail Modal */}
+      <LabTestDetailModal />
     </div>
   );
 }

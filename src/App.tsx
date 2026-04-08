@@ -1,10 +1,15 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
+import { useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme.tsx";
+import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { CartDrawer } from "@/components/CartDrawer";
 
 // Direct imports instead of lazy loading to avoid deployment issues
 import Home from "./pages/Home";
@@ -48,35 +53,90 @@ function LoadingScreen() {
   );
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const [isReady, setIsReady] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsReady(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isReady) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [pathname, isReady]);
+
+  return null;
+}
+
 const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/doctor/:id" element={<DoctorProfile />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/book/:doctorId" element={<BookingFlow />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-              <Route path="/health-dashboard" element={<HealthDashboard />} />
-              <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-              <Route path="/devices" element={<Devices />} />
-              <Route path="/ring-subscription" element={<RingSubscription />} />
-              <Route path="/medicine" element={<Medicine />} />
-              <Route path="/lab-tests" element={<LabTests />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+        <AuthProvider>
+          <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/doctor/:id" element={<DoctorProfile />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/book/:doctorId" element={
+                  <ProtectedRoute>
+                    <BookingFlow />
+                  </ProtectedRoute>
+                } />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/account" element={
+                  <ProtectedRoute>
+                    <Account />
+                  </ProtectedRoute>
+                } />
+                <Route path="/subscription-success" element={
+                  <ProtectedRoute>
+                    <SubscriptionSuccess />
+                  </ProtectedRoute>
+                } />
+                <Route path="/health-dashboard" element={
+                  <ProtectedRoute>
+                    <HealthDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/doctor-dashboard" element={
+                  <ProtectedRoute>
+                    <DoctorDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/devices" element={
+                  <ProtectedRoute>
+                    <Devices />
+                  </ProtectedRoute>
+                } />
+                <Route path="/ring-subscription" element={
+                  <ProtectedRoute>
+                    <RingSubscription />
+                  </ProtectedRoute>
+                } />
+                <Route path="/medicine" element={<Medicine />} />
+                <Route path="/lab-tests" element={<LabTests />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+            <CartDrawer />
+          </BrowserRouter>
+        </CartProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ThemeProvider>

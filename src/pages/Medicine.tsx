@@ -10,11 +10,13 @@ import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/context/CartContext";
 import { mockMedicines, medicineCategories, type Medicine } from "@/data/medicineData";
 
 export default function Medicine() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { addItem } = useCart();
   const [filteredMedicines, setFilteredMedicines] = useState<Medicine[]>(mockMedicines);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -68,6 +70,15 @@ export default function Medicine() {
         variant: "destructive"
       });
     } else {
+      addItem({
+        id: medicine.id,
+        name: medicine.name,
+        price: medicine.discounted_price || medicine.price,
+        quantity: 1,
+        type: 'medicine',
+        category: medicine.category
+      });
+      
       toast({
         title: "Added to Cart",
         description: `${medicine.name} has been added to your cart.`
