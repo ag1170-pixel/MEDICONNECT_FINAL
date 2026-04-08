@@ -8,6 +8,7 @@ export interface Doctor {
   years_experience: number;
   clinic_name: string;
   city: string;
+  state?: string;
   fees: number;
   rating: number;
   reviews_count: number;

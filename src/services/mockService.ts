@@ -1,5 +1,6 @@
 import type { Doctor, Specialty } from '@/types';
-import { mockDoctors, mockSpecialties } from '@/data/mockData';
+import { mockSpecialties } from '@/data/mockData';
+import { loadDoctorsFromCsv } from '@/data/doctorsCsv';
 
 export const fetchSpecialties = async (): Promise<Specialty[]> => {
   // Simulate API delay
@@ -15,11 +16,13 @@ export const fetchDoctors = async (filters?: {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  let filteredDoctors = [...mockDoctors];
+  let filteredDoctors = [...loadDoctorsFromCsv()];
   
   if (filters?.city) {
+    const query = filters.city.toLowerCase();
     filteredDoctors = filteredDoctors.filter(doctor => 
-      doctor.city.toLowerCase().includes(filters.city!.toLowerCase())
+      doctor.city.toLowerCase().includes(query) ||
+      (doctor.state || "").toLowerCase().includes(query)
     );
   }
   
@@ -44,7 +47,7 @@ export const fetchDoctors = async (filters?: {
 export const fetchDoctorById = async (id: string): Promise<Doctor | null> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 300));
-  return mockDoctors.find(doctor => doctor.id === id) || null;
+  return loadDoctorsFromCsv().find(doctor => doctor.id === id) || null;
 };
 
 export const fetchSpecialtyById = async (id: number): Promise<Specialty | null> => {

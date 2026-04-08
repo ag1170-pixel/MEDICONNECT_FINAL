@@ -10,12 +10,14 @@ import { Autocomplete } from "@/components/ui/autocomplete";
 import { fetchSpecialties, fetchDoctors } from "@/services/mockService";
 import { indianStates, doctorSpecialties } from "@/data/indianStates";
 import { useNavigate } from "react-router-dom";
+import { Doctor } from "@/types";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
-  const [topDoctors, setTopDoctors] = useState<any[]>([]);
+  const [topDoctors, setTopDoctors] = useState<Doctor[]>([]);
   const [featuredSpecialties, setFeaturedSpecialties] = useState<any[]>([]);
+  const [totalDoctors, setTotalDoctors] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -26,6 +28,7 @@ export default function Home() {
           fetchDoctors(),
           fetchSpecialties()
         ]);
+        setTotalDoctors(doctorsData.length);
         setTopDoctors(doctorsData.slice(0, 3));
         setFeaturedSpecialties(specialtiesData.slice(0, 8));
       } catch (error) {
@@ -197,7 +200,10 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Top Rated Doctors</h2>
-            <p className="text-muted-foreground">Highly recommended doctors trusted by thousands of patients</p>
+            <p className="text-muted-foreground">
+              Highly recommended doctors trusted by thousands of patients.
+              {totalDoctors > 0 && ` ${totalDoctors} doctors available.`}
+            </p>
           </div>
           
           {loading ? (

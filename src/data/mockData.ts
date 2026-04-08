@@ -10,6 +10,22 @@ export const mockSpecialties: Specialty[] = [
   { id: 6, name: "Gynecology", icon: "user-check", description: "Women's health" },
   { id: 7, name: "General Medicine", icon: "stethoscope", description: "General health consultation" },
   { id: 8, name: "Dentistry", icon: "smile", description: "Dental and oral care" },
+  { id: 9, name: "ENT", icon: "ear", description: "Ear, nose and throat care" },
+  { id: 10, name: "Ophthalmology", icon: "eye", description: "Eye and vision care" },
+  { id: 11, name: "Psychiatry", icon: "brain-circuit", description: "Mental health and counseling" },
+  { id: 12, name: "Pulmonology", icon: "lungs", description: "Lung and respiratory care" },
+  { id: 13, name: "Nephrology", icon: "droplets", description: "Kidney and renal care" },
+  { id: 14, name: "Urology", icon: "activity", description: "Urinary tract and male health" },
+  { id: 15, name: "Gastroenterology", icon: "pill", description: "Digestive system disorders" },
+  { id: 16, name: "Oncology", icon: "shield", description: "Cancer diagnosis and treatment" },
+  { id: 17, name: "Endocrinology", icon: "flask-conical", description: "Hormones, diabetes and thyroid" },
+  { id: 18, name: "Rheumatology", icon: "bone", description: "Joint and autoimmune disorders" },
+  { id: 19, name: "Hematology", icon: "droplet", description: "Blood disorders and anemia care" },
+  { id: 20, name: "Anesthesiology", icon: "syringe", description: "Perioperative and pain care" },
+  { id: 21, name: "Radiology", icon: "scan", description: "Imaging and diagnostic scans" },
+  { id: 22, name: "Physiotherapy", icon: "dumbbell", description: "Rehabilitation and mobility care" },
+  { id: 23, name: "Nutrition & Dietetics", icon: "apple", description: "Diet planning and metabolic health" },
+  { id: 24, name: "Emergency Medicine", icon: "ambulance", description: "Acute and urgent care management" },
 ];
 
 export const mockDoctors: Doctor[] = [

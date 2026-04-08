@@ -8,15 +8,18 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { mockDoctors, mockTimeSlots } from "@/data/mockData";
+import { mockTimeSlots } from "@/data/mockData";
+import { loadDoctorsFromCsv } from "@/data/doctorsCsv";
 import { format, addDays } from "date-fns";
+import { Doctor } from "@/types";
 
 export default function DoctorProfile() {
   const { id } = useParams();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [allDoctors] = useState<Doctor[]>(() => loadDoctorsFromCsv());
   
-  const doctor = mockDoctors.find(d => d.id === id);
+  const doctor = allDoctors.find(d => d.id === id);
 
   useEffect(() => {
     setSelectedDate(new Date());

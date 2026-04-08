@@ -12,9 +12,11 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { mockDoctors, mockTimeSlots } from "@/data/mockData";
+import { mockTimeSlots } from "@/data/mockData";
+import { loadDoctorsFromCsv } from "@/data/doctorsCsv";
 import { format, addDays, parseISO } from "date-fns";
 import { addAppointment } from "@/services/appointmentsStorage";
+import { Doctor } from "@/types";
 
 type BookingStep = 'slots' | 'details' | 'confirmation' | 'success';
 
@@ -48,7 +50,8 @@ export default function BookingFlow() {
   const [isLoading, setIsLoading] = useState(false);
   const [bookingId, setBookingId] = useState<string>('');
 
-  const doctor = mockDoctors.find(d => d.id === doctorId);
+  const [allDoctors] = useState<Doctor[]>(() => loadDoctorsFromCsv());
+  const doctor = allDoctors.find(d => d.id === doctorId);
 
   useEffect(() => {
     // If user is loaded after initial render, prefill patient details (but don't override edits).

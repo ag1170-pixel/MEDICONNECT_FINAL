@@ -1,0 +1,73 @@
+id,name,specialty,specialty_id,years_experience,clinic_name,city,state,fees,rating,reviews_count,bio,profile_image,available_today,available_tomorrow
+1,Aditya Reddy,Cardiology,1,14,Sun Heart Clinic,Vijayawada,Andhra Pradesh,900,4.7,218,"Comprehensive cardiac diagnosis and preventive heart care.",,true,true
+2,Nisha Rao,Dermatology,2,9,Glow Skin Center,Visakhapatnam,Andhra Pradesh,600,4.5,141,"Medical and cosmetic dermatology for skin and hair concerns.",,false,true
+3,Tsering Tashi,Orthopedics,3,12,Hill Bone Care,Itanagar,Arunachal Pradesh,850,4.6,123,"Orthopedic care for fractures, joint pain, and sports injuries.",,true,false
+4,Mitali Das,Pediatrics,4,8,Little Star Clinic,Naharlagun,Arunachal Pradesh,500,4.4,87,"Child health, vaccinations, and growth monitoring services.",,true,true
+5,Rahul Bora,Neurology,5,15,Neuro Assam Center,Guwahati,Assam,1050,4.8,256,"Neurology consultations for headache, epilepsy, and stroke follow-up.",,false,true
+6,Priyanka Saikia,Gynecology,6,11,Women First Care,Dibrugarh,Assam,700,4.6,176,"Women's health, pregnancy care, and hormonal wellness support.",,true,true
+7,Sushant Jha,General Medicine,7,10,Patna Family Clinic,Patna,Bihar,450,4.5,203,"Primary care for infections, diabetes, BP, and routine checkups.",,true,true
+8,Ritu Kumari,Dentistry,8,7,Bright Smile Dental,Gaya,Bihar,400,4.4,98,"Dental consultations, root canal, and preventive oral care.",,true,false
+9,Manish Verma,ENT,9,13,Clear ENT Center,Raipur,Chhattisgarh,650,4.6,169,"Ear, nose, throat evaluation with allergy and sinus management.",,false,true
+10,Shweta Sahu,Ophthalmology,10,9,Vision Plus Eye Clinic,Bilaspur,Chhattisgarh,700,4.5,132,"Eye care for cataract, glaucoma screening, and retina checks.",,true,true
+11,Karan Naik,Psychiatry,11,11,Mind Balance Clinic,Panaji,Goa,900,4.7,158,"Psychiatric consultation for anxiety, depression, and sleep issues.",,true,true
+12,Rhea Fernandes,Pulmonology,12,10,Respira Care,Margao,Goa,950,4.6,121,"Respiratory care for asthma, COPD, and chronic cough.",,false,true
+13,Parth Shah,Nephrology,13,14,Kidney Care Hub,Ahmedabad,Gujarat,1100,4.8,244,"Kidney disease management and dialysis planning support.",,true,false
+14,Aarohi Mehta,Urology,14,9,UroLife Clinic,Surat,Gujarat,950,4.5,139,"Urology care for stones, infections, and male urinary issues.",,true,true
+15,Rohit Dahiya,Gastroenterology,15,13,Digestive Health Center,Gurugram,Haryana,1000,4.7,211,"Digestive care for reflux, IBS, and liver-related concerns.",,true,true
+16,Simran Kaur,Oncology,16,12,Cancer Consult Unit,Faridabad,Haryana,1300,4.6,165,"Oncology guidance with multidisciplinary treatment planning.",,false,true
+17,Vivek Thakur,Endocrinology,17,10,Thyro Sugar Clinic,Shimla,Himachal Pradesh,900,4.5,126,"Diabetes, thyroid, and hormonal disorder management.",,true,true
+18,Kritika Rana,Rheumatology,18,8,Joint Autoimmune Center,Dharamshala,Himachal Pradesh,850,4.4,93,"Rheumatology care for arthritis and autoimmune conditions.",,true,false
+19,Anuj Soren,Hematology,19,11,Blood Care Institute,Ranchi,Jharkhand,1000,4.6,144,"Diagnosis and treatment of anemia and blood disorders.",,false,true
+20,Pooja Kerketta,Anesthesiology,20,9,Pain Relief Clinic,Jamshedpur,Jharkhand,800,4.5,101,"Perioperative support and chronic pain management services.",,true,true
+21,Siddharth Rao,Radiology,21,12,Precision Imaging,Bengaluru,Karnataka,900,4.7,239,"Radiology reporting for ultrasound, CT, and MRI scans.",,true,true
+22,Harini Iyer,Physiotherapy,22,7,MoveWell Rehab,Mysuru,Karnataka,500,4.4,117,"Rehabilitation and mobility plans for injury recovery.",,true,false
+23,Naveen Nair,Nutrition & Dietetics,23,8,Metabolic Diet Clinic,Kochi,Kerala,600,4.5,128,"Evidence-based nutrition plans for weight and metabolic health.",,false,true
+24,Aleena Joseph,Emergency Medicine,24,10,Rapid Care ER,Thiruvananthapuram,Kerala,1200,4.6,176,"Urgent care assessment for acute medical emergencies.",,true,true
+25,Harsh Dubey,Cardiology,1,16,Indore Heart Point,Indore,Madhya Pradesh,950,4.8,251,"Comprehensive cardiac diagnosis and preventive heart care.",,true,true
+26,Tanya Mishra,Dermatology,2,9,Bhopal Skin Studio,Bhopal,Madhya Pradesh,650,4.5,133,"Medical and cosmetic dermatology for skin and hair concerns.",,true,false
+27,Akash Deshmukh,Orthopedics,3,14,Joint Restore Center,Mumbai,Maharashtra,1000,4.7,312,"Orthopedic care for fractures, joint pain, and sports injuries.",,true,true
+28,Neha Kulkarni,Pediatrics,4,11,Pune Kids Clinic,Pune,Maharashtra,550,4.6,188,"Child health, vaccinations, and growth monitoring services.",,false,true
+29,Robert Meitei,Neurology,5,9,Neuro Valley Clinic,Imphal,Manipur,980,4.5,97,"Neurology consultations for headache, epilepsy, and stroke follow-up.",,true,true
+30,Lhingneichon Haokip,Gynecology,6,8,MotherCare Women Center,Churachandpur,Manipur,650,4.4,82,"Women's health, pregnancy care, and hormonal wellness support.",,true,false
+31,Arbin Lyngdoh,General Medicine,7,10,Shillong Health Point,Shillong,Meghalaya,500,4.5,114,"Primary care for infections, diabetes, BP, and routine checkups.",,false,true
+32,Ester Kharkongor,Dentistry,8,7,Megha Dental Hub,Tura,Meghalaya,420,4.3,75,"Dental consultations, root canal, and preventive oral care.",,true,true
+33,Lalruatfeli Chhangte,ENT,9,9,Aizawl ENT Care,Aizawl,Mizoram,620,4.4,88,"Ear, nose, throat evaluation with allergy and sinus management.",,true,true
+34,Zoramthanga Pachuau,Ophthalmology,10,10,Mizo Vision Clinic,Lunglei,Mizoram,700,4.5,91,"Eye care for cataract, glaucoma screening, and retina checks.",,false,true
+35,Neikezhakuo Rio,Psychiatry,11,12,Serene Mind Center,Kohima,Nagaland,850,4.6,109,"Psychiatric consultation for anxiety, depression, and sleep issues.",,true,false
+36,Medovi Sema,Pulmonology,12,8,Airway Care Unit,Dimapur,Nagaland,900,4.4,86,"Respiratory care for asthma, COPD, and chronic cough.",,true,true
+37,Debashis Nayak,Nephrology,13,13,Odisha Kidney Clinic,Bhubaneswar,Odisha,1050,4.7,207,"Kidney disease management and dialysis planning support.",,true,true
+38,Pallavi Mohanty,Urology,14,9,Uro Odisha Care,Cuttack,Odisha,900,4.5,126,"Urology care for stones, infections, and male urinary issues.",,false,true
+39,Gurpreet Singh,Gastroenterology,15,14,Punjab Digestive Center,Amritsar,Punjab,1100,4.8,221,"Digestive care for reflux, IBS, and liver-related concerns.",,true,true
+40,Navjot Kaur,Oncology,16,10,OncoPath Clinic,Ludhiana,Punjab,1250,4.6,154,"Oncology guidance with multidisciplinary treatment planning.",,true,false
+41,Yash Khandelwal,Endocrinology,17,11,Jaipur Hormone Clinic,Jaipur,Rajasthan,920,4.6,146,"Diabetes, thyroid, and hormonal disorder management.",,false,true
+42,Muskan Choudhary,Rheumatology,18,8,Rajasthan Joint Care,Jodhpur,Rajasthan,880,4.4,92,"Rheumatology care for arthritis and autoimmune conditions.",,true,true
+43,Tenzing Lepcha,Hematology,19,10,Gangtok Blood Center,Gangtok,Sikkim,980,4.5,101,"Diagnosis and treatment of anemia and blood disorders.",,true,true
+44,Pema Bhutia,Anesthesiology,20,9,Sikkim Pain Clinic,Namchi,Sikkim,820,4.3,67,"Perioperative support and chronic pain management services.",,false,true
+45,Raghavan Subramaniam,Radiology,21,15,Chennai Imaging Hub,Chennai,Tamil Nadu,950,4.7,268,"Radiology reporting for ultrasound, CT, and MRI scans.",,true,false
+46,Keerthana Ravi,Physiotherapy,22,8,Coimbatore Rehab Care,Coimbatore,Tamil Nadu,550,4.5,138,"Rehabilitation and mobility plans for injury recovery.",,true,true
+47,Varun Goud,Nutrition & Dietetics,23,9,Hyderabad Diet Lab,Hyderabad,Telangana,650,4.6,144,"Evidence-based nutrition plans for weight and metabolic health.",,true,true
+48,Anusha Reddy,Emergency Medicine,24,10,Telangana Rapid ER,Warangal,Telangana,1250,4.5,131,"Urgent care assessment for acute medical emergencies.",,false,true
+49,Anirban Deb,Cardiology,1,12,Agartala HeartCare,Agartala,Tripura,900,4.6,119,"Comprehensive cardiac diagnosis and preventive heart care.",,true,true
+50,Sangita Reang,Dermatology,2,7,Tripura Skin Clinic,Udaipur,Tripura,520,4.3,66,"Medical and cosmetic dermatology for skin and hair concerns.",,true,false
+51,Prateek Srivastava,Orthopedics,3,15,Lucknow Ortho Center,Lucknow,Uttar Pradesh,980,4.7,243,"Orthopedic care for fractures, joint pain, and sports injuries.",,true,true
+52,Saumya Tiwari,Pediatrics,4,10,Kanpur Kids Point,Kanpur,Uttar Pradesh,500,4.5,127,"Child health, vaccinations, and growth monitoring services.",,false,true
+53,Rohan Rawat,Neurology,5,11,Neuro Uttarakhand,Dehradun,Uttarakhand,1020,4.6,133,"Neurology consultations for headache, epilepsy, and stroke follow-up.",,true,true
+54,Ishita Bisht,Gynecology,6,9,Himalayan Women Care,Haldwani,Uttarakhand,680,4.4,95,"Women's health, pregnancy care, and hormonal wellness support.",,true,false
+55,Subhojit Banerjee,General Medicine,7,13,Kolkata MedPoint,Kolkata,West Bengal,520,4.6,189,"Primary care for infections, diabetes, BP, and routine checkups.",,false,true
+56,Mouli Sen,Dentistry,8,8,Howrah Dental Works,Howrah,West Bengal,430,4.4,102,"Dental consultations, root canal, and preventive oral care.",,true,true
+57,Aarav Dsouza,ENT,9,10,Island ENT Center,Port Blair,Andaman and Nicobar Islands,680,4.5,84,"Ear, nose, throat evaluation with allergy and sinus management.",,true,true
+58,Priyamita Roy,Ophthalmology,10,8,Port Vision Eye Clinic,Port Blair,Andaman and Nicobar Islands,720,4.4,73,"Eye care for cataract, glaucoma screening, and retina checks.",,false,true
+59,Rishabh Bansal,Psychiatry,11,11,Chandigarh Mind Clinic,Chandigarh,Chandigarh,920,4.7,147,"Psychiatric consultation for anxiety, depression, and sleep issues.",,true,false
+60,Guneet Kaur,Pulmonology,12,9,Respire Chandigarh,Chandigarh,Chandigarh,980,4.5,112,"Respiratory care for asthma, COPD, and chronic cough.",,true,true
+61,Dhruv Patel,Nephrology,13,12,Silvassa Kidney Care,Silvassa,Dadra and Nagar Haveli and Daman and Diu,1020,4.6,118,"Kidney disease management and dialysis planning support.",,true,true
+62,Ritika Naik,Urology,14,8,Daman Uro Clinic,Daman,Dadra and Nagar Haveli and Daman and Diu,860,4.3,69,"Urology care for stones, infections, and male urinary issues.",,false,true
+63,Armaan Khanna,Gastroenterology,15,14,Delhi Digestive Institute,New Delhi,Delhi,1150,4.8,275,"Digestive care for reflux, IBS, and liver-related concerns.",,true,true
+64,Nandini Arora,Oncology,16,12,Capital Onco Care,New Delhi,Delhi,1350,4.7,201,"Oncology guidance with multidisciplinary treatment planning.",,true,false
+65,Zubair Mir,Endocrinology,17,10,Srinagar Endo Clinic,Srinagar,Jammu and Kashmir,920,4.5,108,"Diabetes, thyroid, and hormonal disorder management.",,true,true
+66,Mehak Kaul,Rheumatology,18,9,Valley Joint Care,Jammu,Jammu and Kashmir,880,4.4,89,"Rheumatology care for arthritis and autoimmune conditions.",,false,true
+67,Stanzin Dorje,Hematology,19,8,Ladakh Blood Center,Leh,Ladakh,990,4.5,64,"Diagnosis and treatment of anemia and blood disorders.",,true,false
+68,Choskit Angmo,Anesthesiology,20,7,Leh Pain Support,Leh,Ladakh,840,4.3,52,"Perioperative support and chronic pain management services.",,true,true
+69,Afsal Koya,Radiology,21,11,Lakshadweep Imaging,Kavaratti,Lakshadweep,900,4.4,58,"Radiology reporting for ultrasound, CT, and MRI scans.",,true,true
+70,Fathima Basheer,Physiotherapy,22,6,Island Rehab Unit,Kavaratti,Lakshadweep,520,4.2,44,"Rehabilitation and mobility plans for injury recovery.",,false,true
+71,Arul Prakash,Nutrition & Dietetics,23,9,Pondy Nutrition Studio,Puducherry,Puducherry,640,4.5,97,"Evidence-based nutrition plans for weight and metabolic health.",,true,true
+72,Sandhya Krishnan,Emergency Medicine,24,10,Puducherry Emergency Care,Puducherry,Puducherry,1220,4.6,116,"Urgent care assessment for acute medical emergencies.",,true,false

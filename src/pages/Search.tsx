@@ -1,42 +1,72 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Filter, MapPin, Star, IndianRupee, SlidersHorizontal } from "lucide-react";
+import { Star, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { DoctorCard } from "@/components/doctors/DoctorCard";
-import { mockDoctors, mockSpecialties, cities } from "@/data/mockData";
+import { mockSpecialties } from "@/data/mockData";
+import { getUniqueCities, getUniqueStates, loadDoctorsFromCsv } from "@/data/doctorsCsv";
 import { Doctor } from "@/types";
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
-  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>(mockDoctors);
+  const [allDoctors] = useState<Doctor[]>(() => loadDoctorsFromCsv());
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>(allDoctors);
+  const [states] = useState<string[]>(() => getUniqueStates(allDoctors));
+  const [cities] = useState<string[]>(() => getUniqueCities(allDoctors));
+  const initialStateParam = searchParams.get("state") || "";
+  const initialCityParam = searchParams.get("city") || "";
+  const cityParamIsState = Boolean(
+    initialCityParam &&
+      allDoctors.some(
+        (doctor) => (doctor.state || "").toLowerCase() === initialCityParam.toLowerCase()
+      )
+  );
 
   // Filter states
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || 'all');
+  const [selectedState, setSelectedState] = useState(
+    initialStateParam || (cityParamIsState ? initialCityParam : "all")
+  );
+  const [selectedCity, setSelectedCity] = useState(cityParamIsState ? "all" : (initialCityParam || "all"));
   const [selectedSpecialty, setSelectedSpecialty] = useState(searchParams.get('specialty_id') || 'all');
   const [feeRange, setFeeRange] = useState([0, 2000]);
   const [minRating, setMinRating] = useState(0);
   const [availability, setAvailability] = useState('any');
   const [sortBy, setSortBy] = useState('rating');
+  const stateScopedCities = selectedState && selectedState !== "all"
+    ? Array.from(
+        new Set(
+          allDoctors
+            .filter((doctor) => (doctor.state || "").toLowerCase() === selectedState.toLowerCase())
+            .map((doctor) => doctor.city)
+            .filter((city) => Boolean(city && city.trim()))
+        )
+      ).sort((a, b) => a.localeCompare(b))
+    : cities;
 
   useEffect(() => {
     // Filter doctors based on current filters
-    let filtered = [...mockDoctors];
+    let filtered = [...allDoctors];
 
     if (query) {
       filtered = filtered.filter(doctor =>
         doctor.name.toLowerCase().includes(query.toLowerCase()) ||
         doctor.specialty.toLowerCase().includes(query.toLowerCase()) ||
         doctor.city.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    if (selectedState && selectedState !== 'all') {
+      filtered = filtered.filter((doctor) =>
+        (doctor.state || "").toLowerCase() === selectedState.toLowerCase()
       );
     }
 
@@ -78,11 +108,12 @@ export default function Search() {
     }
 
     setFilteredDoctors(filtered);
-  }, [query, selectedCity, selectedSpecialty, feeRange, minRating, availability, sortBy]);
+  }, [allDoctors, query, selectedState, selectedCity, selectedSpecialty, feeRange, minRating, availability, sortBy]);
 
   const handleApplyFilters = () => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
+    if (selectedState && selectedState !== 'all') params.set('state', selectedState);
     if (selectedCity && selectedCity !== 'all') params.set('city', selectedCity);
     if (selectedSpecialty && selectedSpecialty !== 'all') params.set('specialty_id', selectedSpecialty);
     setSearchParams(params);
@@ -91,6 +122,7 @@ export default function Search() {
 
   const clearFilters = () => {
     setQuery('');
+    setSelectedState('all');
     setSelectedCity('all');
     setSelectedSpecialty('all');
     setFeeRange([0, 2000]);
@@ -113,7 +145,8 @@ export default function Search() {
               <p className="text-muted-foreground">
                 {filteredDoctors.length} doctor{filteredDoctors.length !== 1 ? 's' : ''} found
                 {query && ` for "${query}"`}
-                {selectedCity && ` in ${selectedCity}`}
+                {selectedState && selectedState !== 'all' && ` in ${selectedState}`}
+                {selectedCity && selectedCity !== 'all' && `, ${selectedCity}`}
               </p>
             </div>
             
@@ -137,13 +170,24 @@ export default function Search() {
                 className="rounded-2xl"
               />
             </div>
+            <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setSelectedCity('all'); }}>
+              <SelectTrigger className="w-44 rounded-2xl">
+                <SelectValue placeholder="State" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All States</SelectItem>
+                {states.map((state) => (
+                  <SelectItem key={state} value={state}>{state}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={selectedCity} onValueChange={setSelectedCity}>
               <SelectTrigger className="w-40 rounded-2xl">
                 <SelectValue placeholder="City" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Cities</SelectItem>
-                {cities.slice(0, 10).map((city) => (
+                {stateScopedCities.map((city) => (
                   <SelectItem key={city} value={city}>{city}</SelectItem>
                 ))}
               </SelectContent>
