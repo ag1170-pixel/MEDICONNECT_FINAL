@@ -37,6 +37,9 @@ export interface EdgeInferenceStats {
   rejectionRate: number;
   lastQuality: "good" | "degraded" | "rejected";
   lastPacket: VitalsPacket | null;
+  accumulativeRiskScore: number;
+  stabilityZone: "stable" | "warning" | "critical";
+  sustainedOutOfRangeWindows: number;
 }
 
 const ALERT_TEMPLATES: Array<{
@@ -138,6 +141,37 @@ function checkForAlerts(metrics: HealthMetrics): Omit<Alert, "id" | "timestamp">
   return null;
 }
 
+function getStabilityZone(metrics: HealthMetrics): "stable" | "warning" | "critical" {
+  const isCritical =
+    metrics.heartRate > 115 ||
+    metrics.heartRate < 50 ||
+    metrics.spo2 < 92 ||
+    metrics.temperature > 101.2 ||
+    metrics.systolic > 160 ||
+    metrics.stress >= 9;
+
+  if (isCritical) return "critical";
+
+  const isWarning =
+    metrics.heartRate > 100 ||
+    metrics.spo2 < 95 ||
+    metrics.temperature > 100.2 ||
+    metrics.systolic > 140 ||
+    metrics.stress >= 7;
+
+  return isWarning ? "warning" : "stable";
+}
+
+function getRiskDelta(metrics: HealthMetrics): number {
+  let delta = 0;
+  if (metrics.heartRate > 100) delta += 10;
+  if (metrics.spo2 < 95) delta += 14;
+  if (metrics.temperature > 100.2) delta += 12;
+  if (metrics.systolic > 140) delta += 8;
+  if (metrics.stress >= 7) delta += 8;
+  return delta;
+}
+
 function generateRawWindow(prev: HealthMetrics | undefined, rand: SeededRandom, count = 24): RawSensorSample[] {
   const now = Date.now();
   const baseHr = prev?.heartRate || 72;
@@ -175,9 +209,15 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
     rejectionRate: 0,
     lastQuality: "good",
     lastPacket: null,
+    accumulativeRiskScore: 18,
+    stabilityZone: "stable",
+    sustainedOutOfRangeWindows: 0,
   });
   const metricsRef = useRef(metrics);
   const randRef = useRef<SeededRandom>(mulberry32(randSeed));
+  const riskScoreRef = useRef(18);
+  const sustainedOutOfRangeRef = useRef(0);
+  const lastEscalationTsRef = useRef(0);
 
   useEffect(() => {
     metricsRef.current = metrics;
@@ -225,7 +265,13 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
       rejectionRate: 0,
       lastQuality: "good",
       lastPacket: null,
+      accumulativeRiskScore: 18,
+      stabilityZone: "stable",
+      sustainedOutOfRangeWindows: 0,
     });
+    riskScoreRef.current = 18;
+    sustainedOutOfRangeRef.current = 0;
+    lastEscalationTsRef.current = 0;
   }, [patientIdOrInterval, patientId, randSeed, resolvedIntervalMs]);
 
   useEffect(() => {
@@ -255,6 +301,17 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
 
       setHistory(prev => [...prev.slice(-49), { ...newMetrics, time: timeLabel }]);
 
+      const zone = getStabilityZone(newMetrics);
+      if (zone === "stable") {
+        sustainedOutOfRangeRef.current = 0;
+      } else {
+        sustainedOutOfRangeRef.current += 1;
+      }
+
+      const riskDelta = getRiskDelta(newMetrics);
+      const decay = zone === "stable" ? 8 : zone === "warning" ? 2 : 0;
+      riskScoreRef.current = Math.max(0, Math.min(100, riskScoreRef.current + riskDelta - decay));
+
       setEdgeStats((prev) => {
         const windowsProcessed = prev.windowsProcessed + 1;
         const packetsTransmitted = prev.packetsTransmitted + (inference.accepted ? 1 : 0);
@@ -266,19 +323,34 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
           rejectionRate: windowsProcessed ? rejectedWindows / windowsProcessed : 0,
           lastQuality: edgePacket?.quality || "rejected",
           lastPacket: edgePacket || null,
+          accumulativeRiskScore: riskScoreRef.current,
+          stabilityZone: zone,
+          sustainedOutOfRangeWindows: sustainedOutOfRangeRef.current,
         };
       });
 
-      // Check for alerts (with some randomness to avoid flooding)
-      if (inference.accepted && randRef.current() < 0.15) {
-        const alert = checkForAlerts(newMetrics);
-        if (alert) {
+      // Tiered alerting: only escalate to critical on sustained out-of-range + high accumulative risk.
+      const now = Date.now();
+      const canEscalateAgain = now - lastEscalationTsRef.current > 45_000;
+      const shouldEscalate =
+        inference.accepted &&
+        zone === "critical" &&
+        sustainedOutOfRangeRef.current >= 3 &&
+        riskScoreRef.current >= 70 &&
+        canEscalateAgain;
+
+      if (shouldEscalate) {
+        const baseAlert = checkForAlerts(newMetrics);
+        if (baseAlert) {
           const newAlert: Alert = {
-            id: `alert-${Date.now()}`,
+            id: `tiered-${now}`,
             timestamp: new Date(),
-            ...alert,
+            ...baseAlert,
+            title: `Critical Escalation: ${baseAlert.title}`,
+            message: `Accumulative risk score ${Math.round(riskScoreRef.current)}/100. ${baseAlert.message}`,
           };
-          setAlerts(prev => [newAlert, ...prev].slice(0, 10));
+          setAlerts((prev) => [newAlert, ...prev].slice(0, 10));
+          lastEscalationTsRef.current = now;
         }
       }
     }, resolvedIntervalMs);

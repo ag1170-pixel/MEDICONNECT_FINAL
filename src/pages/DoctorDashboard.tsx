@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart, Activity, Thermometer, Droplets, Brain,
   Search, User, FileText, CheckCircle, ChevronRight,
-  Stethoscope, Clock, TrendingUp, AlertTriangle, Plus, Send
+  Stethoscope, Clock, TrendingUp, AlertTriangle, Plus, Send, Moon
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { GlassCard } from "@/components/GlassCard";
@@ -108,6 +108,7 @@ export default function DoctorDashboard() {
   const lastPacketTime = edgeStats.lastPacket
     ? new Date(edgeStats.lastPacket.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
     : "--";
+  const sleepQuality = Math.max(1, Math.min(10, Math.round((metrics.sleepHours / 9) * 10)));
 
   const filteredPatients = livePatients.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -192,6 +193,20 @@ export default function DoctorDashboard() {
               Edge inference active: {edgeStats.packetsTransmitted}/{edgeStats.windowsProcessed} windows transmitted,
               {" "}quality {edgeStats.lastQuality}, rejected {(edgeStats.rejectionRate * 100).toFixed(0)}%.
             </p>
+            <div className="mt-2 flex items-center gap-2 text-[11px]">
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full border uppercase tracking-wide",
+                  edgeStats.stabilityZone === "stable" && "text-green-300 border-green-500/40 bg-green-500/10",
+                  edgeStats.stabilityZone === "warning" && "text-amber-300 border-amber-500/40 bg-amber-500/10",
+                  edgeStats.stabilityZone === "critical" && "text-red-300 border-red-500/40 bg-red-500/10"
+                )}
+              >
+                {edgeStats.stabilityZone}
+              </span>
+              <span className="text-cyan-200/90">Risk {Math.round(edgeStats.accumulativeRiskScore)}/100</span>
+              <span className="text-muted-foreground">Sustained windows: {edgeStats.sustainedOutOfRangeWindows}</span>
+            </div>
           </div>
           {/* Stats */}
           <div className="flex items-center gap-3">
@@ -344,8 +359,16 @@ export default function DoctorDashboard() {
                       </AreaChart>
                     </ResponsiveContainer>
                   </GlassCard>
-                  <div className="grid grid-cols-2 gap-3">
+                  <GlassCard className="p-3">
+                    <p className="text-xs text-cyan-200/90">
+                      We implement Tiered Alerting. The system does not ping a doctor for a single high reading.
+                      It uses an accumulative risk score. Only if vitals stay outside the Stable zone
+                      (Green/Yellow/Red bars) for a sustained period does it escalate to a Critical alert.
+                    </p>
+                  </GlassCard>
+                  <div className="grid grid-cols-3 gap-3">
                     <MetricCard label="Stress" value={metrics.stress} unit="/10" icon={Brain} color="purple" status={metrics.stress >= 8 ? "critical" : "normal"} />
+                    <MetricCard label="Sleep Quality" value={sleepQuality} unit="/10" icon={Moon} color="blue" status={sleepQuality >= 8 ? "good" : sleepQuality >= 6 ? "normal" : "warning"} />
                     <MetricCard label="Steps" value={metrics.steps.toLocaleString()} icon={TrendingUp} color="green" />
                   </div>
                 </motion.div>
