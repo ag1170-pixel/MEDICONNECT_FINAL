@@ -13,6 +13,7 @@ import { AIChat } from "@/components/AIChat";
 import { useSimulatedData } from "@/hooks/useSimulatedData";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface Patient {
   id: string;
@@ -65,6 +66,7 @@ export default function DoctorDashboard() {
   const [prescription, setPrescription] = useState("");
   const [notes, setNotes] = useState<Array<{ id: string; patient: string; content: string; diagnosis: string; prescription: string; time: string }>>([]);
   const [activeTab, setActiveTab] = useState<"metrics" | "notes" | "history">("metrics");
+  const { toast } = useToast();
 
   const { metrics, history, alerts, resolveAlert } = useSimulatedData(selectedPatient.id, 3000);
 
@@ -77,7 +79,14 @@ export default function DoctorDashboard() {
   const warningCount = MOCK_PATIENTS.filter(p => p.status === "warning").length;
 
   const handleSaveNote = () => {
-    if (!noteText.trim() && !diagnosis.trim()) return;
+    if (!noteText.trim() && !diagnosis.trim()) {
+      toast({
+        title: "Nothing to share",
+        description: "Add a diagnosis or notes before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
     const newNote = {
       id: Date.now().toString(),
       patient: selectedPatient.name,
@@ -90,6 +99,10 @@ export default function DoctorDashboard() {
     setNoteText("");
     setDiagnosis("");
     setPrescription("");
+    toast({
+      title: "Note shared with user",
+      description: `Clinical note saved for ${selectedPatient.name}.`,
+    });
   };
 
   const handleSendToUser = (patient: Patient) => {
@@ -114,13 +127,13 @@ export default function DoctorDashboard() {
       timestamp: new Date().toISOString()
     };
 
-    // In a real app, this would send via email, SMS, or push notification
-    // For now, we'll show a success message and log the data
-    console.log('Sending patient data to user:', patientData);
-    
-    // You could integrate with EmailJS, Supabase, or other services here
-    // For demonstration, we'll show an alert
-    alert(`Health report sent to ${patient.name}! (Check console for data)`);
+    // In a real app, this would send via email, SMS, or push notification.
+    // For now, we show an in-app popup confirmation.
+    void patientData;
+    toast({
+      title: "Health report sent",
+      description: `Shared the latest metrics and notes with ${patient.name}.`,
+    });
   };
 
   return (
