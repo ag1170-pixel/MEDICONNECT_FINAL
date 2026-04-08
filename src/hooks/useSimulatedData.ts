@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Alert, AlertType } from "@/components/AlertCard";
+import { RawSensorSample, runEdgeInference, VitalsPacket } from "@/services/edgeInference";
 
 export interface HealthMetrics {
   heartRate: number;
@@ -27,6 +28,15 @@ export interface DeviceStatus {
     nfcEnabled: boolean;
     fingerprintLocked: boolean;
   };
+}
+
+export interface EdgeInferenceStats {
+  windowsProcessed: number;
+  packetsTransmitted: number;
+  rejectedWindows: number;
+  rejectionRate: number;
+  lastQuality: "good" | "degraded" | "rejected";
+  lastPacket: VitalsPacket | null;
 }
 
 const ALERT_TEMPLATES: Array<{
@@ -128,6 +138,24 @@ function checkForAlerts(metrics: HealthMetrics): Omit<Alert, "id" | "timestamp">
   return null;
 }
 
+function generateRawWindow(prev: HealthMetrics | undefined, rand: SeededRandom, count = 24): RawSensorSample[] {
+  const now = Date.now();
+  const baseHr = prev?.heartRate || 72;
+  const baseTemp = prev?.temperature || 98.4;
+
+  return Array.from({ length: count }, (_, i) => {
+    const motionSpike = rand() < 0.12 ? 0.5 + rand() * 0.5 : 0;
+    const accel = Math.max(0, rand() * 0.6 + motionSpike);
+
+    return {
+      ppg: baseHr + (rand() - 0.5) * 16 - accel * 6,
+      accel,
+      skinTempF: baseTemp + (rand() - 0.5) * 0.4,
+      ts: now - (count - i) * 80,
+    };
+  });
+}
+
 export function useSimulatedData(patientIdOrInterval: string | number | undefined = undefined, intervalMs = 3000) {
   const patientId = typeof patientIdOrInterval === "string" ? patientIdOrInterval : "default";
   const resolvedIntervalMs = typeof patientIdOrInterval === "number" ? patientIdOrInterval : intervalMs;
@@ -139,6 +167,14 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
   const [deviceStatus] = useState<DeviceStatus>({
     band: { connected: true, battery: 78, lastSync: new Date(), charging: false },
     ring: { connected: true, battery: 91, lastSync: new Date(), nfcEnabled: true, fingerprintLocked: false },
+  });
+  const [edgeStats, setEdgeStats] = useState<EdgeInferenceStats>({
+    windowsProcessed: 0,
+    packetsTransmitted: 0,
+    rejectedWindows: 0,
+    rejectionRate: 0,
+    lastQuality: "good",
+    lastPacket: null,
   });
   const metricsRef = useRef(metrics);
   const randRef = useRef<SeededRandom>(mulberry32(randSeed));
@@ -182,11 +218,33 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
       });
     }
     setHistory(initialHistory);
+    setEdgeStats({
+      windowsProcessed: 0,
+      packetsTransmitted: 0,
+      rejectedWindows: 0,
+      rejectionRate: 0,
+      lastQuality: "good",
+      lastPacket: null,
+    });
   }, [patientIdOrInterval, patientId, randSeed, resolvedIntervalMs]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const newMetrics = generateMetrics(metricsRef.current, randRef.current);
+      const rawWindow = generateRawWindow(metricsRef.current, randRef.current);
+      const inference = runEdgeInference(rawWindow, metricsRef.current.heartRate);
+      const edgePacket = inference.packet;
+
+      // If packet was rejected due to motion artifact, keep previous vitals.
+      // This simulates ring-side filtering and avoids transmitting noisy values.
+      const newMetrics = inference.accepted && edgePacket
+        ? {
+            ...generateMetrics(metricsRef.current, randRef.current),
+            heartRate: edgePacket.heartRate,
+            spo2: edgePacket.spo2,
+            temperature: edgePacket.temperature,
+          }
+        : metricsRef.current;
+
       setMetrics(newMetrics);
 
       const timeLabel = new Date().toLocaleTimeString([], {
@@ -197,8 +255,22 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
 
       setHistory(prev => [...prev.slice(-49), { ...newMetrics, time: timeLabel }]);
 
+      setEdgeStats((prev) => {
+        const windowsProcessed = prev.windowsProcessed + 1;
+        const packetsTransmitted = prev.packetsTransmitted + (inference.accepted ? 1 : 0);
+        const rejectedWindows = prev.rejectedWindows + (inference.accepted ? 0 : 1);
+        return {
+          windowsProcessed,
+          packetsTransmitted,
+          rejectedWindows,
+          rejectionRate: windowsProcessed ? rejectedWindows / windowsProcessed : 0,
+          lastQuality: edgePacket?.quality || "rejected",
+          lastPacket: edgePacket || null,
+        };
+      });
+
       // Check for alerts (with some randomness to avoid flooding)
-      if (randRef.current() < 0.15) {
+      if (inference.accepted && randRef.current() < 0.15) {
         const alert = checkForAlerts(newMetrics);
         if (alert) {
           const newAlert: Alert = {
@@ -230,5 +302,5 @@ export function useSimulatedData(patientIdOrInterval: string | number | undefine
     setAlerts(prev => [newAlert, ...prev].slice(0, 10));
   }, []);
 
-  return { metrics, history, alerts, deviceStatus, resolveAlert, triggerAlert };
+  return { metrics, history, alerts, deviceStatus, edgeStats, resolveAlert, triggerAlert };
 }

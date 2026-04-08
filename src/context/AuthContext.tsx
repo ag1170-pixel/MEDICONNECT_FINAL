@@ -14,22 +14,36 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getNameFromEmail = (email: string) => {
+  const localPart = email.split('@')[0] || 'User';
+  return localPart
+    .replace(/[._-]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Treat everyone as signed-in with a dummy user
   const [user, setUser] = useState<AuthUser | null>({
     id: "demo-user",
     email: "demo@mediconnect.local",
     full_name: "Demo User",
+    user_metadata: {
+      full_name: "Demo User",
+    },
   } as AuthUser);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
 
   const signIn = async (email: string, password: string) => {
     // Fake sign-in: mark user as logged in locally, no Supabase call
+    const fullName = getNameFromEmail(email);
     setUser({
       id: "demo-user",
       email,
-      full_name: "Demo User",
+      full_name: fullName,
+      user_metadata: {
+        full_name: fullName,
+      },
     } as AuthUser);
     setSession(null);
     setLoading(false);
@@ -43,15 +57,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
     // Fake sign-up: immediately treat as signed-in
+    const resolvedName = fullName || getNameFromEmail(email);
     setUser({
       id: "demo-user",
       email,
-      full_name: fullName || "Demo User",
+      full_name: resolvedName,
       phone,
+      user_metadata: {
+        full_name: resolvedName,
+        phone,
+      },
     } as AuthUser);
     setSession(null);
     setLoading(false);
-    return { data: { user: { email, full_name: fullName } }, error: undefined };
+    return { data: { user: { email, full_name: resolvedName } }, error: undefined };
   };
 
   const signOut = async () => {

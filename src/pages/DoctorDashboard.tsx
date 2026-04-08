@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart, Activity, Thermometer, Droplets, Brain,
@@ -14,10 +14,12 @@ import { useSimulatedData } from "@/hooks/useSimulatedData";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface Patient {
   id: string;
   name: string;
+  email?: string;
   age: number;
   condition: string;
   status: "stable" | "warning" | "critical";
@@ -59,6 +61,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function DoctorDashboard() {
+  const { user } = useAuth();
   const [selectedPatient, setSelectedPatient] = useState<Patient>(MOCK_PATIENTS[0]);
   const [searchTerm, setSearchTerm] = useState("");
   const [noteText, setNoteText] = useState("");
@@ -68,15 +71,51 @@ export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState<"metrics" | "notes" | "history">("metrics");
   const { toast } = useToast();
 
-  const { metrics, history, alerts, resolveAlert } = useSimulatedData(selectedPatient.id, 3000);
+  const currentUserPatient = useMemo<Patient>(() => {
+    const resolvedName =
+      user?.user_metadata?.full_name ||
+      user?.full_name ||
+      user?.email?.split("@")[0] ||
+      "Current User";
 
-  const filteredPatients = MOCK_PATIENTS.filter(p =>
+    return {
+      id: user?.id || "current-user",
+      name: resolvedName,
+      email: user?.email || undefined,
+      age: 30,
+      condition: "General Monitoring",
+      status: "stable",
+      lastVisit: "Live now",
+      avatar: resolvedName
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase(),
+    };
+  }, [user]);
+
+  const livePatients = useMemo<Patient[]>(
+    () => [currentUserPatient, ...MOCK_PATIENTS.filter((patient) => patient.id !== currentUserPatient.id)],
+    [currentUserPatient]
+  );
+
+  useEffect(() => {
+    setSelectedPatient(currentUserPatient);
+  }, [currentUserPatient]);
+
+  const { metrics, history, alerts, edgeStats, resolveAlert } = useSimulatedData(selectedPatient.id, 3000);
+  const lastPacketTime = edgeStats.lastPacket
+    ? new Date(edgeStats.lastPacket.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    : "--";
+
+  const filteredPatients = livePatients.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.condition.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const criticalCount = MOCK_PATIENTS.filter(p => p.status === "critical").length;
-  const warningCount = MOCK_PATIENTS.filter(p => p.status === "warning").length;
+  const criticalCount = livePatients.filter(p => p.status === "critical").length;
+  const warningCount = livePatients.filter(p => p.status === "warning").length;
 
   const handleSaveNote = () => {
     if (!noteText.trim() && !diagnosis.trim()) {
@@ -149,6 +188,10 @@ export default function DoctorDashboard() {
             </div>
             <h1 className="text-3xl font-bold text-white">Patient <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Monitor</span></h1>
             <p className="text-muted-foreground mt-1">Real-time patient monitoring and clinical management</p>
+            <p className="text-xs text-cyan-300/80 mt-2">
+              Edge inference active: {edgeStats.packetsTransmitted}/{edgeStats.windowsProcessed} windows transmitted,
+              {" "}quality {edgeStats.lastQuality}, rejected {(edgeStats.rejectionRate * 100).toFixed(0)}%.
+            </p>
           </div>
           {/* Stats */}
           <div className="flex items-center gap-3">
@@ -161,7 +204,7 @@ export default function DoctorDashboard() {
               <p className="text-xs text-muted-foreground">Warning</p>
             </div>
             <div className="px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/20 text-center">
-              <p className="text-xl font-bold text-green-400">{MOCK_PATIENTS.length - criticalCount - warningCount}</p>
+              <p className="text-xl font-bold text-green-400">{livePatients.length - criticalCount - warningCount}</p>
               <p className="text-xs text-muted-foreground">Stable</p>
             </div>
           </div>
@@ -234,6 +277,9 @@ export default function DoctorDashboard() {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">{selectedPatient.name}</h2>
+                    {selectedPatient.email && (
+                      <p className="text-xs text-cyan-300/90 mt-0.5">{selectedPatient.email}</p>
+                    )}
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground">Age {selectedPatient.age}</span>
                       <span className="text-muted-foreground/30">·</span>
@@ -409,11 +455,72 @@ export default function DoctorDashboard() {
               />
             </GlassCard>
 
+            <GlassCard>
+              <h3 className="font-semibold text-white mb-3 text-sm">Last Vitals Packet</h3>
+              {!edgeStats.lastPacket ? (
+                <div className="text-xs text-muted-foreground bg-black/30 border border-white/10 rounded-xl p-3">
+                  Waiting for first packet...
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-black/30 border border-white/10 rounded-xl p-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Heart Rate</p>
+                      <p className="text-sm font-semibold text-white">{edgeStats.lastPacket.heartRate} BPM</p>
+                    </div>
+                    <div className="bg-black/30 border border-white/10 rounded-xl p-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">SpO2</p>
+                      <p className="text-sm font-semibold text-white">{edgeStats.lastPacket.spo2}%</p>
+                    </div>
+                    <div className="bg-black/30 border border-white/10 rounded-xl p-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Temp</p>
+                      <p className="text-sm font-semibold text-white">{edgeStats.lastPacket.temperature} F</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/30 border border-white/10 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Packet Quality</span>
+                      <span
+                        className={cn(
+                          "text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wide",
+                          edgeStats.lastPacket.quality === "good" && "text-green-300 border-green-500/40 bg-green-500/10",
+                          edgeStats.lastPacket.quality === "degraded" && "text-amber-300 border-amber-500/40 bg-amber-500/10",
+                          edgeStats.lastPacket.quality === "rejected" && "text-red-300 border-red-500/40 bg-red-500/10"
+                        )}
+                      >
+                        {edgeStats.lastPacket.quality}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Motion Artifact</span>
+                        <span className="text-[10px] text-cyan-200">
+                          {Math.round(edgeStats.lastPacket.motionArtifactScore * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-400 to-blue-500"
+                          style={{ width: `${Math.round(edgeStats.lastPacket.motionArtifactScore * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-muted-foreground">
+                      Transmitted at {lastPacketTime}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </GlassCard>
+
             {/* All patients quick view */}
             <GlassCard>
               <h3 className="font-semibold text-white mb-3 text-sm">Patient Status Overview</h3>
               <div className="space-y-2">
-                {MOCK_PATIENTS.slice(0, 4).map(p => (
+                {livePatients.slice(0, 4).map(p => (
                   <motion.button key={p.id} whileHover={{ x: 2 }} onClick={() => setSelectedPatient(p)} className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors text-left">
                     <motion.div className={cn("w-2 h-2 rounded-full flex-shrink-0", statusDot[p.status])}
                       animate={p.status === "critical" ? { scale: [1, 1.3, 1], opacity: [1, 0.5, 1] } : {}}
